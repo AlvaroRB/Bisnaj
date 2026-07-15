@@ -1,0 +1,255 @@
+---
+const { title = "Bisnaj" } = Astro.props;
+---
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{title}</title>
+
+<meta name="description" content="Accesorios de boda personalizados y bordados a mano">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Jost:wght@400;500;600&family=Pinyon+Script&display=swap" rel="stylesheet">
+
+<style>
+    :root{
+    --lino:      #F7F3EC;   /* fondo general, como tela de lino   */
+    --blanco:    #FFFFFF;   /* tarjetas                            */
+    --tinta:     #33302B;   /* texto principal, hilo oscuro        */
+    --tinta-2:   #6E675C;   /* texto secundario                    */
+    --empolvado: #E7DCCB;   /* bordes y paneles suaves             */
+    --panel:     #F2EADD;   /* fondo de la vista previa            */
+    --oro:       #9C7C3C;   /* acento: hilo de oro (usar poco)     */
+    --salvia:    #7A8471;   /* verde para detalles vegetales       */
+
+    --f-titulo: 'Marcellus', Georgia, serif;
+    --f-texto:  'Jost', system-ui, sans-serif;
+    --f-bordado:'Pinyon Script', cursive;
+
+    --radio: 14px;
+    }
+
+    *{ box-sizing:border-box; margin:0; padding:0 }
+    html{ scroll-behavior:smooth }
+    body{
+    font-family:var(--f-texto);
+    background:var(--lino);
+    color:var(--tinta);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    }
+    img,svg{ display:block; max-width:100% }
+    button{ font:inherit; cursor:pointer; background:none; border:none; color:inherit }
+    input,textarea{ font:inherit; color:inherit }
+    :focus-visible{ outline:2px solid var(--oro); outline-offset:2px; border-radius:4px }
+
+    /* ---------- franja superior ---------- */
+    .aviso{
+    background:var(--tinta); color:var(--lino);
+    text-align:center; font-size:.78rem; letter-spacing:.14em;
+    text-transform:uppercase; padding:.55rem 1rem;
+    }
+
+    /* ---------- cabecera ---------- */
+    .cabecera{
+    max-width:1120px; margin:0 auto; padding:2.2rem 1.5rem 1.4rem;
+    display:flex; align-items:flex-end; justify-content:space-between; gap:1rem;
+    }
+    .marca{ font-family:var(--f-titulo); font-size:clamp(1.7rem,4vw,2.3rem); font-weight:400; letter-spacing:.02em }
+    .marca .azahar{ color:var(--oro) }
+    .lema{ color:var(--tinta-2); font-size:.92rem; margin-top:.15rem }
+    .enlace-contacto{
+    font-size:.8rem; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--tinta); text-decoration:none; border-bottom:1px solid var(--empolvado);
+    padding-bottom:2px; white-space:nowrap;
+    }
+    .enlace-contacto:hover{ border-color:var(--tinta) }
+
+    /* ---------- pestañas de producto ---------- */
+    .pestanas{
+    max-width:1120px; margin:0 auto; padding:0 1.5rem;
+    display:flex; gap:.25rem; overflow-x:auto;
+    border-bottom:1px solid var(--empolvado);
+    }
+    .pestanas button{
+    padding:.9rem 1rem .8rem; white-space:nowrap;
+    font-size:.82rem; letter-spacing:.13em; text-transform:uppercase;
+    color:var(--tinta-2); box-shadow:inset 0 -2px 0 transparent;
+    transition:color .15s, box-shadow .15s;
+    }
+    .pestanas button:hover{ color:var(--tinta) }
+    .pestanas button[aria-selected="true"]{ color:var(--tinta); box-shadow:inset 0 -2px 0 var(--tinta) }
+
+    /* ---------- zona de producto ---------- */
+    .producto{
+    max-width:1120px; margin:0 auto; padding:2.4rem 1.5rem 3rem;
+    display:grid; gap:2.4rem;
+    }
+    @media(min-width:920px){
+    .producto{ grid-template-columns:1.02fr 1fr; gap:3.6rem; align-items:start }
+    .galeria{ position:sticky; top:1.4rem }
+    }
+
+    /* galería */
+    .principal{
+    background:var(--panel); border:1px solid var(--empolvado);
+    border-radius:var(--radio); overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    min-height:420px; padding:1.2rem;
+    }
+    .principal svg{ width:min(340px,100%); height:auto }
+    .pie-preview{
+    text-align:center; font-size:.78rem; color:var(--tinta-2);
+    letter-spacing:.06em; margin-top:.6rem;
+    }
+    .miniaturas{ display:flex; gap:.6rem; margin-top:.9rem; flex-wrap:wrap }
+    .miniaturas button{
+    width:64px; height:64px; border-radius:10px;
+    border:1px solid var(--empolvado); background:var(--blanco);
+    display:flex; align-items:center; justify-content:center;
+    font-size:.62rem; letter-spacing:.05em; color:var(--tinta-2);
+    text-align:center; line-height:1.2; padding:4px;
+    }
+    .miniaturas button[aria-current="true"]{ border-color:var(--tinta); color:var(--tinta) }
+    .hueco-foto{
+    width:100%; max-width:360px; aspect-ratio:3/4; margin:0 auto;
+    border:1.5px dashed var(--empolvado); border-radius:12px;
+    display:flex; flex-direction:column; gap:.5rem;
+    align-items:center; justify-content:center;
+    color:var(--tinta-2); font-size:.85rem; text-align:center; padding:1rem;
+    background:var(--blanco);
+    }
+
+    /* configurador */
+    .miga{ font-size:.74rem; letter-spacing:.14em; text-transform:uppercase; color:var(--tinta-2) }
+    .config h2{ font-family:var(--f-titulo); font-weight:400; font-size:clamp(1.6rem,3.4vw,2.1rem); margin:.35rem 0 .2rem }
+    .chip-borrador{
+    display:inline-block; margin-left:.55rem; vertical-align:middle;
+    font-size:.62rem; letter-spacing:.12em; text-transform:uppercase;
+    background:var(--panel); color:var(--oro);
+    border:1px solid var(--empolvado); border-radius:999px; padding:.2rem .6rem;
+    }
+    .precio-desde{ font-size:1.02rem; margin-bottom:1rem }
+    .precio-desde small{ color:var(--tinta-2); font-size:.8rem; margin-left:.35rem }
+    .descripcion p{ color:var(--tinta-2); margin-bottom:.7rem; max-width:56ch }
+
+    .grupo{ margin-top:1.6rem }
+    .grupo-cabecera{
+    display:flex; justify-content:space-between; align-items:baseline; gap:1rem;
+    margin-bottom:.6rem;
+    }
+    .grupo-cabecera label, .grupo-cabecera span.titulo{
+    font-size:.8rem; letter-spacing:.13em; text-transform:uppercase;
+    }
+    .grupo-cabecera .valor{ font-size:.85rem; color:var(--tinta-2) }
+    .ayuda{ font-size:.8rem; color:var(--tinta-2); margin-top:.45rem }
+
+    /* opciones tipo botón */
+    .botones{ display:flex; flex-wrap:wrap; gap:.55rem }
+    .botones label{
+    border:1px solid var(--empolvado); border-radius:999px;
+    padding:.55rem 1.05rem; font-size:.9rem; background:var(--blanco);
+    display:inline-flex; gap:.45rem; align-items:baseline;
+    transition:border-color .15s, background .15s, color .15s;
+    }
+    .botones label small{ color:var(--tinta-2); font-size:.76rem }
+    .botones input{ position:absolute; opacity:0; pointer-events:none }
+    .botones label:has(input:checked){ background:var(--tinta); color:var(--lino); border-color:var(--tinta) }
+    .botones label:has(input:checked) small{ color:var(--empolvado) }
+    .botones label:has(input:focus-visible){ outline:2px solid var(--oro); outline-offset:2px }
+
+    /* muestras de color */
+    .muestras{ display:flex; flex-wrap:wrap; gap:.7rem }
+    .muestras label{ position:relative; width:36px; height:36px; border-radius:50%;
+    border:2px solid var(--blanco); box-shadow:0 0 0 1px var(--empolvado);
+    transition:box-shadow .15s;
+    }
+    .muestras input{ position:absolute; opacity:0; pointer-events:none }
+    .muestras label:has(input:checked){ box-shadow:0 0 0 2px var(--tinta) }
+    .muestras label:has(input:focus-visible){ outline:2px solid var(--oro); outline-offset:3px }
+
+    /* campos de texto */
+    .campo input[type=text], .campo textarea{
+    width:100%; background:var(--blanco);
+    border:1px solid var(--empolvado); border-radius:10px;
+    padding:.7rem .85rem;
+    }
+    .campo textarea{ min-height:76px; resize:vertical }
+
+    /* extras */
+    .extras label{
+    display:flex; align-items:center; gap:.65rem;
+    padding:.65rem .2rem; border-bottom:1px dashed var(--empolvado);
+    font-size:.93rem;
+    }
+    .extras label:last-child{ border-bottom:none }
+    .extras input{ width:17px; height:17px; accent-color:var(--tinta) }
+    .extras .mas{ margin-left:auto; color:var(--tinta-2); font-size:.85rem }
+
+    /* total y acciones */
+    .linea-total{
+    margin-top:1.8rem; padding-top:1.2rem; border-top:1px solid var(--empolvado);
+    display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+    }
+    .total{ font-family:var(--f-titulo); font-size:1.45rem }
+    .total small{ font-family:var(--f-texto); font-size:.75rem; color:var(--tinta-2); margin-left:.4rem }
+    .cantidad{ display:inline-flex; align-items:center; border:1px solid var(--empolvado); border-radius:999px; background:var(--blanco) }
+    .cantidad button{ width:38px; height:38px; font-size:1.05rem; color:var(--tinta-2) }
+    .cantidad button:hover{ color:var(--tinta) }
+    .cantidad output{ min-width:26px; text-align:center; font-weight:500 }
+
+    .acciones{ display:grid; gap:.6rem; margin-top:1.1rem }
+    .btn-principal{
+    background:var(--tinta); color:var(--lino); border-radius:999px;
+    padding:.95rem 1.4rem; font-size:.88rem; letter-spacing:.12em; text-transform:uppercase;
+    text-align:center; transition:background .15s;
+    }
+    .btn-principal:hover{ background:#1f1d19 }
+    .btn-secundario{
+    border:1px solid var(--empolvado); border-radius:999px; background:var(--blanco);
+    padding:.85rem 1.4rem; font-size:.85rem; letter-spacing:.1em; text-transform:uppercase;
+    text-align:center;
+    }
+    .btn-secundario:hover{ border-color:var(--tinta) }
+    .nota-plazo{ font-size:.78rem; color:var(--tinta-2); text-align:center; margin-top:.4rem }
+
+    /* ---------- pestañas de información ---------- */
+    .info{ max-width:1120px; margin:0 auto 3.5rem; padding:0 1.5rem }
+    .info-tabs{ display:flex; gap:.25rem; border-bottom:1px solid var(--empolvado); overflow-x:auto }
+    .info-tabs button{
+    padding:.8rem .9rem .7rem; font-size:.78rem; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--tinta-2); white-space:nowrap; box-shadow:inset 0 -2px 0 transparent;
+    }
+    .info-tabs button[aria-selected="true"]{ color:var(--tinta); box-shadow:inset 0 -2px 0 var(--tinta) }
+    .info-panel{ padding:1.4rem .2rem 0; max-width:68ch; color:var(--tinta-2) }
+    .info-panel p{ margin-bottom:.8rem }
+    .info-panel strong{ color:var(--tinta) }
+
+    /* ---------- pie ---------- */
+    footer{
+    border-top:1px solid var(--empolvado); background:var(--blanco);
+    padding:2.6rem 1.5rem 2.2rem;
+    }
+    .pie-int{ max-width:1120px; margin:0 auto; display:grid; gap:1.6rem }
+    @media(min-width:720px){ .pie-int{ grid-template-columns:1.4fr 1fr 1fr; align-items:start } }
+    .pie-int h3{ font-family:var(--f-titulo); font-weight:400; font-size:1.25rem; margin-bottom:.3rem }
+    .pie-int p, .pie-int a{ color:var(--tinta-2); font-size:.9rem; text-decoration:none }
+    .pie-int a:hover{ color:var(--tinta) }
+    .pie-int ul{ list-style:none; display:grid; gap:.35rem }
+    .legal{ max-width:1120px; margin:1.8rem auto 0; font-size:.75rem; color:var(--tinta-2);
+    border-top:1px dashed var(--empolvado); padding-top:1rem }
+
+    @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; scroll-behavior:auto }
+    }
+</style>
+
+</head>
+
+<body>
+  <slot />
+</body>
+</html>

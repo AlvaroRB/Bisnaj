@@ -1,0 +1,662 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+<BaseLayout title="Punto de Azahar">
+
+<div class="aviso" id="aviso"></div>
+
+<nav class="pestanas" id="pestanas"></nav>
+
+<script is:inline>
+	<div class="aviso" id="aviso"></div>
+
+	<header class="cabecera">
+	<div>
+		<div class="marca" id="marca"></div>
+		<p class="lema" id="lema"></p>
+	</div>
+	<a class="enlace-contacto" href="#contacto">Contacto</a>
+	</header>
+
+	<nav class="pestanas" id="pestanas" role="tablist" aria-label="Productos"></nav>
+
+	<main>
+	<section class="producto" id="producto"></section>
+	<section class="info" id="info"></section>
+	</main>
+
+	<footer id="contacto">
+	<div class="pie-int">
+		<div>
+		<h3 id="pie-marca"></h3>
+		<p>Accesorios de boda personalizados, bordados a mano y bajo pedido en Córdoba.</p>
+		</div>
+		<div>
+		<h3>Escríbenos</h3>
+		<ul>
+			<li><a id="pie-email" href="#"></a></li>
+			<li><a id="pie-wa" href="#">WhatsApp</a></li>
+		</ul>
+		</div>
+		<div>
+		<h3>Síguenos</h3>
+		<ul>
+			<li><a id="pie-ig" href="#" target="_blank" rel="noopener"></a></li>
+		</ul>
+		</div>
+	</div>
+	<p class="legal" id="legal"></p>
+	</footer>
+
+	<script>
+	/* ================================================================
+	CONFIGURACIÓN  ·  EDITA AQUÍ
+	Todo lo que ve la clienta sale de este bloque: nombre de la
+	tienda, contacto, productos, opciones, precios y textos.
+	Para añadir un producto nuevo, copia uno de los bloques de
+	PRODUCTOS y cambia sus datos: la web lo pinta sola.
+	================================================================ */
+
+	const TIENDA = {
+	nombre:    'Bisnaj',
+	lema:      'Accesorios de boda bordados a mano',
+	anuncio:   'Cada pieza se hace a mano y bajo pedido · Agenda 2026–2027 abierta',
+	email:     'hola@biznaj.es',      // ← tu email real
+	whatsapp:  '34661714720',                            // ← nº con prefijo, ej. '34612345678' (si está vacío, el botón usa el email)
+	instagram: '@bisnaj_',              // ← tu Instagram
+	legal:     '© 2026 · Recomendamos hacer los pedidos con al menos tres meses de antelación.'
+	};
+
+	/* Colores de hilo disponibles (compartidos por todos los productos) */
+	const HILOS = [
+	{ id:'beige',    nombre:'Beige',           color:'#C3A878' },
+	{ id:'dorado',   nombre:'Dorado',          color:'#A67C2E' },
+	{ id:'empolv',   nombre:'Rosa empolvado',  color:'#C2938F' },
+	{ id:'granate',  nombre:'Granate',         color:'#7C2F3E' },
+	{ id:'oliva',    nombre:'Verde oliva',     color:'#5A6248' },
+	{ id:'marino',   nombre:'Azul marino',     color:'#2E3A5C' }
+	];
+
+	const PRODUCTOS = [
+
+	/* ---------- 1 · CINTA DEL RAMO (completa) ---------- */
+	{
+		id:'cinta',
+		pestana:'Cinta del ramo',
+		nombre:'Cinta del ramo',
+		precioBase: 45,
+		descripcion: [
+		'Cinta de algodón para el ramo de novia, bordada a mano con vuestras iniciales.',
+		'El diseño de florecitas es fijo y siempre va en los mismos tonos; el color de las iniciales lo eliges tú.'
+		],
+		opciones: [
+		{ id:'largo', etiqueta:'Largo de la cinta', tipo:'botones', defecto:'corta',
+			valores:[
+			{ id:'corta', nombre:'Corta', detalle:'70 cm',  precio:0 },
+			{ id:'larga', nombre:'Larga', detalle:'140 cm', precio:10 }
+			]},
+		{ id:'hilo', etiqueta:'Color del hilo', tipo:'muestras', defecto:'granate', valores:HILOS },
+		{ id:'posicion', etiqueta:'Posición del bordado', tipo:'botones', defecto:'centro',
+			valores:[
+			{ id:'centro',  nombre:'Centro',  precio:0 },
+			{ id:'extremo', nombre:'Extremo', precio:0 }
+			]},
+		{ id:'iniciales', etiqueta:'Iniciales', tipo:'texto', placeholder:'M & J', max:14,
+			ayuda:'Tal y como quieras que se borden.' },
+		{ id:'fecha', etiqueta:'Fecha de la boda', tipo:'texto', placeholder:'12 · 09 · 2026', max:16,
+			ayuda:'Informativa: solo se borda si añades el extra de fecha bordada.' }
+		],
+		extras: [
+		{ id:'fechaBordada', nombre:'Fecha bordada', precio:5 },
+		{ id:'puntilla',     nombre:'Puntilla de encaje en los bordes', precio:8 }
+		],
+		fotos: [],           /* ← rutas de tus fotos, ej. ['fotos/cinta-1.jpg', ...] */
+		info: {
+		'Más info':
+			'100% algodón. La cinta larga mide **140 cm** de largo y la corta **70 cm**, ambas de 3,5 cm de ancho aproximadamente.\n' +
+			'Bordada a mano y personalizada con las iniciales de la pareja o de la novia. El diseño del bordado no es personalizable.\n' +
+			'Las fotos pueden mostrar una ligera variación de color respecto a la pieza real.',
+		'Plazos':
+			'Los pedidos de boda se envían **un mes antes** de la fecha. El tiempo de elaboración es de unos **15 días laborables** y el envío tarda unas 48 horas.\n' +
+			'Si tu pedido es urgente, escríbenos antes de encargarlo.',
+		'Cambios y devoluciones':
+			'Al tratarse de piezas personalizadas (iniciales, fechas, nombres), **no se admiten cambios ni devoluciones**.\n' +
+			'Si hubiera que modificar una pieza ya bordada, el encargo tendría que repetirse con el mismo coste.'
+		}
+	},
+
+	/* ---------- 2 · COJÍN DE LAS ALIANZAS (borrador) ---------- */
+	{
+		id:'cojin',
+		pestana:'Cojín de las alianzas',
+		nombre:'Cojín de las alianzas',
+		borrador:true,
+		icono:'cojin',
+		precioBase: 55,
+		descripcion: [
+		'Cojín portador de alianzas en tela natural, con las iniciales bordadas y lazo para sujetar los anillos.',
+		'Sección en borrador: iremos definiendo juntas las opciones y los precios.'
+		],
+		opciones: [
+		{ id:'tela', etiqueta:'Tela', tipo:'botones', defecto:'lino',
+			valores:[
+			{ id:'lino', nombre:'Lino natural', precio:0 },
+			{ id:'raso', nombre:'Raso marfil', precio:0 }
+			]},
+		{ id:'hilo', etiqueta:'Color del hilo', tipo:'muestras', defecto:'beige', valores:HILOS },
+		{ id:'iniciales', etiqueta:'Iniciales', tipo:'texto', placeholder:'M & J', max:14 }
+		],
+		extras: [ { id:'fechaBordada', nombre:'Fecha bordada', precio:5 } ],
+		fotos: [],
+		info: {
+		'Más info':'Medidas y materiales pendientes de definir.',
+		'Plazos':'Elaboración estimada de 15 días laborables. Envío en 48 horas.',
+		'Cambios y devoluciones':'Piezas personalizadas: no se admiten cambios ni devoluciones.'
+		}
+	},
+
+	/* ---------- 3 · BOLSA PARA LAS ARRAS (borrador) ---------- */
+	{
+		id:'arras',
+		pestana:'Bolsa para las arras',
+		nombre:'Bolsa para las arras',
+		borrador:true,
+		icono:'bolsa',
+		precioBase: 40,
+		descripcion: [
+		'Bolsita artesanal para las trece arras, con cierre de cordón y bordado personalizado.',
+		'Sección en borrador: iremos definiendo juntas las opciones y los precios.'
+		],
+		opciones: [
+		{ id:'tela', etiqueta:'Tela', tipo:'botones', defecto:'lino',
+			valores:[
+			{ id:'lino', nombre:'Lino natural', precio:0 },
+			{ id:'raso', nombre:'Raso marfil', precio:0 }
+			]},
+		{ id:'hilo', etiqueta:'Color del hilo', tipo:'muestras', defecto:'dorado', valores:HILOS },
+		{ id:'iniciales', etiqueta:'Iniciales', tipo:'texto', placeholder:'M & J', max:14 }
+		],
+		extras: [ { id:'fechaBordada', nombre:'Fecha bordada', precio:5 } ],
+		fotos: [],
+		info: {
+		'Más info':'Medidas y materiales pendientes de definir.',
+		'Plazos':'Elaboración estimada de 15 días laborables. Envío en 48 horas.',
+		'Cambios y devoluciones':'Piezas personalizadas: no se admiten cambios ni devoluciones.'
+		}
+	},
+
+	/* ---------- 4 · ABANICO (borrador) ---------- */
+	{
+		id:'abanico',
+		pestana:'Abanico',
+		nombre:'Abanico de novia',
+		borrador:true,
+		icono:'abanico',
+		precioBase: 50,
+		descripcion: [
+		'Abanico con país de tela y detalle bordado, pensado para acompañar a la novia o como regalo.',
+		'Sección en borrador: iremos definiendo juntas las opciones y los precios.'
+		],
+		opciones: [
+		{ id:'varillas', etiqueta:'Varillas', tipo:'botones', defecto:'clara',
+			valores:[
+			{ id:'clara',  nombre:'Madera clara',  precio:0 },
+			{ id:'oscura', nombre:'Madera oscura', precio:0 }
+			]},
+		{ id:'hilo', etiqueta:'Color del hilo', tipo:'muestras', defecto:'empolv', valores:HILOS },
+		{ id:'iniciales', etiqueta:'Iniciales', tipo:'texto', placeholder:'M & J', max:14 }
+		],
+		extras: [ { id:'fechaBordada', nombre:'Fecha bordada', precio:5 } ],
+		fotos: [],
+		info: {
+		'Más info':'Medidas y materiales pendientes de definir.',
+		'Plazos':'Elaboración estimada de 15 días laborables. Envío en 48 horas.',
+		'Cambios y devoluciones':'Piezas personalizadas: no se admiten cambios ni devoluciones.'
+		}
+	}
+	];
+
+	/* ================================================================
+	A PARTIR DE AQUÍ ES EL MOTOR DE LA WEB
+	(normalmente no hace falta tocarlo)
+	================================================================ */
+
+	const eur = n => n.toLocaleString('es-ES', { style:'currency', currency:'EUR' });
+	const esc = s => String(s).replace(/[&<>"']/g, c => (
+	{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
+	));
+
+	/* ---- estado de las elecciones (uno por producto) ---- */
+	const estado = {};
+	for (const p of PRODUCTOS){
+	estado[p.id] = { sel:{}, txt:{}, extras:{}, nota:'', cantidad:1, vista:'preview' };
+	for (const o of (p.opciones||[])){
+		if (o.tipo === 'texto') estado[p.id].txt[o.id] = '';
+		else estado[p.id].sel[o.id] = o.defecto ?? o.valores[0].id;
+	}
+	}
+	let productoActivo = PRODUCTOS[0].id;
+
+	/* ---- utilidades de datos ---- */
+	const producto = () => PRODUCTOS.find(p => p.id === productoActivo);
+	const st = () => estado[productoActivo];
+
+	function precioUnidad(p, s){
+	let total = p.precioBase;
+	for (const o of (p.opciones||[])){
+		if (o.tipo === 'texto') continue;
+		const v = o.valores.find(v => v.id === s.sel[o.id]);
+		if (v && v.precio) total += v.precio;
+	}
+	for (const e of (p.extras||[])) if (s.extras[e.id]) total += e.precio;
+	return total;
+	}
+
+	function valorLegible(p, s, o){
+	if (o.tipo === 'texto') return s.txt[o.id] || '—';
+	const v = o.valores.find(v => v.id === s.sel[o.id]);
+	return v ? (v.nombre + (v.detalle ? ` (${v.detalle})` : '')) : '—';
+	}
+
+	function resumenPedido(){
+	const p = producto(), s = st();
+	const lineas = [`Pedido · ${p.nombre}`];
+	for (const o of (p.opciones||[])) lineas.push(`· ${o.etiqueta}: ${valorLegible(p,s,o)}`);
+	const ex = (p.extras||[]).filter(e => s.extras[e.id]).map(e => e.nombre);
+	lineas.push(`· Extras: ${ex.length ? ex.join(', ') : 'ninguno'}`);
+	lineas.push(`· Cantidad: ${s.cantidad}`);
+	if (s.nota.trim()) lineas.push(`· Nota: ${s.nota.trim()}`);
+	lineas.push(`Total estimado: ${eur(precioUnidad(p,s)*s.cantidad)} (IVA incluido)`);
+	return lineas.join('\n');
+	}
+
+	/* ================================================================
+	VISTA PREVIA · SVG
+	================================================================ */
+
+	function svgCinta(){
+	const p = producto(), s = st();
+	const hilo   = HILOS.find(h => h.id === s.sel.hilo) || HILOS[0];
+	const larga  = s.sel.largo === 'larga';
+	const extremo= s.sel.posicion === 'extremo';
+	const ini    = (s.txt.iniciales || '').trim() || 'M & J';
+	const fecha  = (s.txt.fecha || '').trim() || '12 · 09 · 2026';
+	const conFecha = !!s.extras.fechaBordada;
+	const puntilla = !!s.extras.puntilla;
+
+	const xI = 140, xD = 220;             // bordes de la cinta
+	const topTail = 78;                   // arranque bajo el nudo
+	const yFin = larga ? 496 : 428;       // largo de la caída
+	const cyI = extremo ? yFin - 140
+						: (topTail + yFin)/2 - (conFecha ? 26 : 10);
+	const fs  = ini.length > 9 ? 30 : 40; // tamaño de las iniciales
+
+	/* puntilla: bolitas sobre ambos bordes */
+	let bolitas = '';
+	if (puntilla){
+		for (let y = topTail + 12; y < yFin - 26; y += 13){
+		bolitas += `<circle cx="${xI}" cy="${y}" r="4.4" fill="#FBF6EC" stroke="#E0D2BA" stroke-width="1"/>`;
+		bolitas += `<circle cx="${xD}" cy="${y}" r="4.4" fill="#FBF6EC" stroke="#E0D2BA" stroke-width="1"/>`;
+		}
+	}
+
+	/* florecitas fijas (siempre los mismos tonos) */
+	const flor = (cx, cy, r) => {
+		let s = '';
+		for (let k = 0; k < 5; k++){
+		const a = k * 2*Math.PI/5 - Math.PI/2;
+		s += `<circle cx="${(cx + Math.cos(a)*r*1.6).toFixed(1)}" cy="${(cy + Math.sin(a)*r*1.6).toFixed(1)}" r="${r}" fill="#DDBFAE"/>`;
+		}
+		return s + `<circle cx="${cx}" cy="${cy}" r="${(r*0.8).toFixed(1)}" fill="#A9B39B"/>`;
+	};
+
+	const colaExtra = larga
+		? `<path d="M198 ${topTail} L252 ${topTail} L252 ${yFin-70} L225 ${yFin-88} L198 ${yFin-70} Z"
+				transform="rotate(3 225 ${topTail})"
+				fill="#F3ECDD" stroke="#E6DAC4" stroke-width="1" opacity="0.75"/>`
+		: '';
+
+	const fechaTxt = conFecha
+		? `<text transform="translate(158 ${cyI}) rotate(90)" text-anchor="middle"
+				font-family="Jost, sans-serif" font-size="12" letter-spacing="3"
+				fill="${hilo.color}">${esc(fecha)}</text>`
+		: '';
+
+	return `
+	<svg viewBox="0 0 360 540" xmlns="http://www.w3.org/2000/svg" role="img"
+		aria-label="Vista previa de la cinta del ramo con iniciales ${esc(ini)}">
+		<!-- tallos del ramo -->
+		<g stroke="#7A8471" stroke-width="2" stroke-linecap="round" fill="none">
+		<path d="M166 14 L176 46"/><path d="M180 8 L180 46"/><path d="M194 14 L184 46"/>
+		</g>
+		<circle cx="163" cy="12" r="5" fill="#DDBFAE"/>
+		<circle cx="180" cy="6"  r="5" fill="#E7CBB9"/>
+		<circle cx="197" cy="12" r="5" fill="#DDBFAE"/>
+
+		${colaExtra}
+
+		<!-- caída principal -->
+		<path d="M${xI} ${topTail} L${xD} ${topTail} L${xD} ${yFin} L180 ${yFin-24} L${xI} ${yFin} Z"
+			fill="#FAF4E8" stroke="#E6DAC4" stroke-width="1"/>
+
+		<!-- lazada -->
+		<path d="M178 66 C110 34 96 88 172 78 Z" fill="#F6EFE0" stroke="#E6DAC4" stroke-width="1"/>
+		<path d="M182 66 C250 34 264 88 188 78 Z" fill="#F6EFE0" stroke="#E6DAC4" stroke-width="1"/>
+		<rect x="162" y="56" width="36" height="26" rx="8" fill="#F8F2E6" stroke="#E6DAC4" stroke-width="1"/>
+
+		${bolitas}
+
+		<!-- pespuntes laterales en el color del hilo -->
+		<g stroke="${hilo.color}" stroke-width="1.4" stroke-linecap="round"
+		stroke-dasharray="1.5 5.5" opacity="0.5">
+		<path d="M${xI+6} ${topTail+14} L${xI+6} ${yFin-30}"/>
+		<path d="M${xD-6} ${topTail+14} L${xD-6} ${yFin-30}"/>
+		</g>
+
+		<!-- florecitas del diseño (fijas) -->
+		${flor(180, topTail+26, 3.4)}
+		${flor(163, topTail+38, 2.6)}
+		${flor(197, topTail+38, 2.6)}
+
+		<!-- iniciales bordadas -->
+		<text transform="translate(190 ${cyI}) rotate(90)" text-anchor="middle"
+			font-family="'Pinyon Script', cursive" font-size="${fs}"
+			fill="${hilo.color}">${esc(ini)}</text>
+		${fechaTxt}
+	</svg>`;
+	}
+
+	/* iconos sencillos para los productos en borrador */
+	function svgBoceto(tipo){
+	const trazos = {
+		cojin: `<rect x="70" y="86" width="120" height="96" rx="26"/>
+				<path d="M70 110 Q130 96 190 110 M70 158 Q130 172 190 158"/>
+				<circle cx="118" cy="134" r="13"/><circle cx="140" cy="134" r="13"/>`,
+		bolsa: `<path d="M96 96 C96 78 164 78 164 96 L176 108 C204 150 192 190 130 190 C68 190 56 150 84 108 Z"/>
+				<path d="M92 106 L168 106"/>
+				<path d="M118 96 C118 84 142 84 142 96" stroke-dasharray="3 5"/>`,
+		abanico:`<path d="M130 186 L58 96 M130 186 L98 78 M130 186 L130 70 M130 186 L162 78 M130 186 L202 96"/>
+				<path d="M58 96 C90 62 170 62 202 96"/>
+				<circle cx="130" cy="186" r="6"/>`
+	};
+	return `
+	<svg viewBox="0 0 260 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Boceto del producto">
+		<circle cx="130" cy="128" r="102" fill="#EFE6D6"/>
+		<g fill="none" stroke="#5C554A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+		${trazos[tipo] || trazos.cojin}
+		</g>
+	</svg>`;
+	}
+
+	/* ================================================================
+	PINTADO DE LA PÁGINA
+	================================================================ */
+
+	function pintarPestanas(){
+	const nav = document.getElementById('pestanas');
+	nav.innerHTML = PRODUCTOS.map(p => `
+		<button role="tab" data-prod="${p.id}"
+				aria-selected="${p.id === productoActivo}">${esc(p.pestana)}</button>
+	`).join('');
+	nav.querySelectorAll('button').forEach(b =>
+		b.addEventListener('click', () => {
+		productoActivo = b.dataset.prod;
+		pintarPestanas(); pintarProducto(); pintarInfo();
+		window.scrollTo({ top: 0, behavior: 'smooth' });
+		})
+	);
+	}
+
+	function htmlOpciones(p, s){
+	return (p.opciones||[]).map(o => {
+		if (o.tipo === 'texto'){
+		return `
+		<div class="grupo campo">
+			<div class="grupo-cabecera"><label for="txt-${o.id}">${esc(o.etiqueta)}</label></div>
+			<input type="text" id="txt-${o.id}" data-txt="${o.id}"
+				maxlength="${o.max||30}" placeholder="${esc(o.placeholder||'')}"
+				value="${esc(s.txt[o.id])}">
+			${o.ayuda ? `<p class="ayuda">${esc(o.ayuda)}</p>` : ''}
+		</div>`;
+		}
+		if (o.tipo === 'muestras'){
+		return `
+		<div class="grupo">
+			<div class="grupo-cabecera">
+			<span class="titulo">${esc(o.etiqueta)}</span>
+			<span class="valor" data-etq="${o.id}"></span>
+			</div>
+			<div class="muestras" role="radiogroup" aria-label="${esc(o.etiqueta)}">
+			${o.valores.map(v => `
+				<label style="background:${v.color}" title="${esc(v.nombre)}">
+				<input type="radio" name="op-${o.id}" value="${v.id}" data-op="${o.id}"
+						${s.sel[o.id]===v.id?'checked':''} aria-label="${esc(v.nombre)}">
+				</label>`).join('')}
+			</div>
+		</div>`;
+		}
+		/* tipo 'botones' */
+		return `
+		<div class="grupo">
+		<div class="grupo-cabecera"><span class="titulo">${esc(o.etiqueta)}</span></div>
+		<div class="botones" role="radiogroup" aria-label="${esc(o.etiqueta)}">
+			${o.valores.map(v => `
+			<label>
+				<input type="radio" name="op-${o.id}" value="${v.id}" data-op="${o.id}"
+					${s.sel[o.id]===v.id?'checked':''}>
+				${esc(v.nombre)}
+				${v.detalle ? `<small>${esc(v.detalle)}</small>` : ''}
+				${v.precio  ? `<small>+${eur(v.precio)}</small>` : ''}
+			</label>`).join('')}
+		</div>
+		</div>`;
+	}).join('');
+	}
+
+	function pintarProducto(){
+	const p = producto(), s = st();
+	const cont = document.getElementById('producto');
+
+	const miniaturas = [
+		`<button data-vista="preview" aria-current="${s.vista==='preview'}">Bordado</button>`,
+		...(p.fotos.length
+			? p.fotos.map((f,i) => `<button data-vista="foto-${i}" aria-current="${s.vista==='foto-'+i}">Foto ${i+1}</button>`)
+			: [1,2,3].map(i => `<button data-vista="hueco-${i}" aria-current="${s.vista==='hueco-'+i}">Foto ${i}</button>`))
+	].join('');
+
+	cont.innerHTML = `
+		<div class="galeria">
+		<div class="principal" id="lienzo"></div>
+		<p class="pie-preview" id="pie-lienzo"></p>
+		<div class="miniaturas" id="miniaturas">${miniaturas}</div>
+		</div>
+
+		<div class="config">
+		<p class="miga">Bodas · ${esc(p.pestana)}</p>
+		<h2>${esc(p.nombre)}${p.borrador ? '<span class="chip-borrador">Borrador</span>' : ''}</h2>
+		<p class="precio-desde">Desde ${eur(p.precioBase)}<small>IVA incluido</small></p>
+		<div class="descripcion">${p.descripcion.map(t => `<p>${esc(t)}</p>`).join('')}</div>
+
+		${htmlOpciones(p, s)}
+
+		${(p.extras && p.extras.length) ? `
+		<div class="grupo extras">
+			<div class="grupo-cabecera"><span class="titulo">Extras</span></div>
+			${p.extras.map(e => `
+			<label>
+				<input type="checkbox" data-extra="${e.id}" ${s.extras[e.id]?'checked':''}>
+				${esc(e.nombre)}
+				<span class="mas">+${eur(e.precio)}</span>
+			</label>`).join('')}
+		</div>` : ''}
+
+		<div class="grupo campo">
+			<div class="grupo-cabecera"><label for="nota">Nota del pedido</label></div>
+			<textarea id="nota" placeholder="Cuéntanos cualquier detalle que debamos saber.">${esc(s.nota)}</textarea>
+		</div>
+
+		<div class="linea-total">
+			<p class="total" id="total"></p>
+			<div class="cantidad" aria-label="Cantidad">
+			<button type="button" data-delta="-1" aria-label="Quitar una unidad">−</button>
+			<output id="cantidad">${s.cantidad}</output>
+			<button type="button" data-delta="1" aria-label="Añadir una unidad">+</button>
+			</div>
+		</div>
+
+		<div class="acciones">
+			<button class="btn-principal" id="btn-solicitar"></button>
+			<button class="btn-secundario" id="btn-copiar">Copiar resumen del diseño</button>
+			<p class="nota-plazo">Elaboración: 15 días laborables · Envío en 48 h</p>
+		</div>
+		</div>
+	`;
+
+	/* --- listeners --- */
+	cont.querySelectorAll('[data-op]').forEach(el =>
+		el.addEventListener('change', () => { s.sel[el.dataset.op] = el.value; refrescar(); }));
+
+	cont.querySelectorAll('[data-txt]').forEach(el =>
+		el.addEventListener('input', () => { s.txt[el.dataset.txt] = el.value; refrescar(); }));
+
+	cont.querySelectorAll('[data-extra]').forEach(el =>
+		el.addEventListener('change', () => { s.extras[el.dataset.extra] = el.checked; refrescar(); }));
+
+	cont.querySelector('#nota').addEventListener('input', e => { s.nota = e.target.value; });
+
+	cont.querySelectorAll('[data-delta]').forEach(el =>
+		el.addEventListener('click', () => {
+		s.cantidad = Math.max(1, s.cantidad + Number(el.dataset.delta));
+		document.getElementById('cantidad').textContent = s.cantidad;
+		refrescar();
+		}));
+
+	cont.querySelectorAll('#miniaturas button').forEach(el =>
+		el.addEventListener('click', () => {
+		s.vista = el.dataset.vista;
+		cont.querySelectorAll('#miniaturas button')
+			.forEach(b => b.setAttribute('aria-current', b === el));
+		refrescar();
+		}));
+
+	cont.querySelector('#btn-solicitar').addEventListener('click', () => {
+		const texto = resumenPedido();
+		if (TIENDA.whatsapp){
+		window.open(`https://wa.me/${TIENDA.whatsapp}?text=${encodeURIComponent(texto)}`, '_blank');
+		} else {
+		const asunto = `Pedido · ${producto().nombre}`;
+		window.location.href =
+			`mailto:${TIENDA.email}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(texto)}`;
+		}
+	});
+
+	cont.querySelector('#btn-copiar').addEventListener('click', async e => {
+		try{
+		await navigator.clipboard.writeText(resumenPedido());
+		e.target.textContent = 'Resumen copiado ✓';
+		setTimeout(() => e.target.textContent = 'Copiar resumen del diseño', 1800);
+		}catch(_){
+		alert(resumenPedido());
+		}
+	});
+
+	refrescar();
+	}
+
+	/* actualiza vista previa, etiquetas y total sin repintar los campos */
+	function refrescar(){
+	const p = producto(), s = st();
+
+	/* lienzo principal */
+	const lienzo = document.getElementById('lienzo');
+	const pie = document.getElementById('pie-lienzo');
+	if (s.vista === 'preview'){
+		lienzo.innerHTML = (p.id === 'cinta') ? svgCinta() : svgBoceto(p.icono);
+		pie.textContent = (p.id === 'cinta')
+		? 'Vista previa orientativa del bordado'
+		: 'Boceto · las fotos reales irán aquí';
+	} else if (s.vista.startsWith('foto-')){
+		const f = p.fotos[Number(s.vista.split('-')[1])];
+		lienzo.innerHTML = `<img src="${esc(f)}" alt="${esc(p.nombre)}" style="border-radius:10px">`;
+		pie.textContent = '';
+	} else {
+		lienzo.innerHTML = `
+		<div class="hueco-foto">
+			<svg width="34" height="34" viewBox="0 0 34 34" fill="none"
+				stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+			<path d="M6 24 C14 10 22 10 28 22"/><circle cx="24" cy="9" r="3.4"/>
+			<path d="M9 27 h16"/>
+			</svg>
+			<span>Sube tus fotos y las colocamos aquí,<br>con la máxima calidad posible.</span>
+		</div>`;
+		pie.textContent = '';
+	}
+
+	/* nombre del color de hilo elegido */
+	(p.opciones||[]).filter(o => o.tipo === 'muestras').forEach(o => {
+		const v = o.valores.find(v => v.id === s.sel[o.id]);
+		const etq = document.querySelector(`[data-etq="${o.id}"]`);
+		if (etq) etq.textContent = v ? v.nombre : '';
+	});
+
+	/* total */
+	document.getElementById('total').innerHTML =
+		`${eur(precioUnidad(p,s) * s.cantidad)}<small>IVA incluido</small>`;
+
+	/* texto del botón principal */
+	document.getElementById('btn-solicitar').textContent =
+		TIENDA.whatsapp ? 'Solicitar por WhatsApp' : 'Solicitar por email';
+	}
+
+	/* pestañas de información (Más info / Plazos / Devoluciones) */
+	function pintarInfo(){
+	const p = producto();
+	const claves = Object.keys(p.info || {});
+	const cont = document.getElementById('info');
+	if (!claves.length){ cont.innerHTML = ''; return; }
+
+	const md = t => esc(t)
+		.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+		.split('\n').map(l => `<p>${l}</p>`).join('');
+
+	cont.innerHTML = `
+		<div class="info-tabs" role="tablist" aria-label="Información del producto">
+		${claves.map((c,i) => `<button role="tab" data-i="${i}" aria-selected="${i===0}">${esc(c)}</button>`).join('')}
+		</div>
+		${claves.map((c,i) => `<div class="info-panel" data-panel="${i}" ${i?'hidden':''}>${md(p.info[c])}</div>`).join('')}
+	`;
+	cont.querySelectorAll('[role=tab]').forEach(b =>
+		b.addEventListener('click', () => {
+		cont.querySelectorAll('[role=tab]').forEach(x => x.setAttribute('aria-selected', x===b));
+		cont.querySelectorAll('[data-panel]').forEach(pan =>
+			pan.hidden = pan.dataset.panel !== b.dataset.i);
+		}));
+	}
+
+	/* textos generales de la tienda */
+	function pintarTienda(){
+	document.title = `${TIENDA.nombre} · ${TIENDA.lema}`;
+	document.getElementById('aviso').textContent = TIENDA.anuncio;
+	document.getElementById('marca').innerHTML =
+		esc(TIENDA.nombre).replace(/Azahar/, '<span class="azahar">Azahar</span>');
+	document.getElementById('lema').textContent = TIENDA.lema;
+	document.getElementById('pie-marca').textContent = TIENDA.nombre;
+	const em = document.getElementById('pie-email');
+	em.textContent = TIENDA.email; em.href = `mailto:${TIENDA.email}`;
+	const wa = document.getElementById('pie-wa');
+	if (TIENDA.whatsapp) wa.href = `https://wa.me/${TIENDA.whatsapp}`;
+	else wa.parentElement.style.display = 'none';
+	const ig = document.getElementById('pie-ig');
+	ig.textContent = TIENDA.instagram;
+	ig.href = `https://instagram.com/${TIENDA.instagram.replace('@','')}`;
+	document.getElementById('legal').textContent = TIENDA.legal;
+	}
+
+	pintarTienda();
+	pintarPestanas();
+	pintarProducto();
+	pintarInfo();
+	---
+</script>
+
+</BaseLayout>
