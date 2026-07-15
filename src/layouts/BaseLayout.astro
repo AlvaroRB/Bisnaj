@@ -1,5 +1,8 @@
 ---
-const { title = "Bisnaj" } = Astro.props;
+const {
+  title = "Bisnaj",
+  description = "Accesorios de boda personalizados y bordados a mano",
+} = Astro.props;
 ---
 <!doctype html>
 <html lang="es">
@@ -8,13 +11,14 @@ const { title = "Bisnaj" } = Astro.props;
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
 
-<meta name="description" content="Accesorios de boda personalizados y bordados a mano">
+<meta name="description" content={description}>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Jost:wght@400;500;600&family=Pinyon+Script&display=swap" rel="stylesheet">
 
-<style>
+<style is:global>
     :root{
     --lino:      #F7F3EC;   /* fondo general, como tela de lino   */
     --blanco:    #FFFFFF;   /* tarjetas                            */
