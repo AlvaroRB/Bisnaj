@@ -1,6 +1,55 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { TIENDA, HILOS, PRODUCTOS } from "../data/tienda.js";
+import type { ImageMetadata } from "astro";
+
+/* ================================================================
+FOTOS DE LOS PRODUCTOS
+Astro NO sirve las imágenes de src/assets por su ruta directa: hay
+que importarlas para que las optimice y les dé una URL válida en
+producción. Aquí importamos TODAS las imágenes de src/assets de una
+vez y las repartimos por producto según su nombre de archivo.
+
+CÓMO NOMBRAR TUS ARCHIVOS (y no tocar nada más):
+  · Portada  →  src/assets/PORTADA-<id>.jpg   (ej. PORTADA-cinta.jpg)
+  · Fotos    →  src/assets/fotos-productos/<id>-1.jpg, <id>-2.jpg…
+                (ej. cinta-1.jpg, cinta-2.jpg, cinta-3.jpg)
+  <id> es el identificador del producto en tienda.js:
+  cinta · cojin · arras · abanico
+También vale meterlas en subcarpeta por producto
+(fotos-productos/cinta/1.jpg) o una carpeta portadas/cinta.jpg.
+================================================================ */
+const IMAGENES = import.meta.glob<{ default: ImageMetadata }>(
+  "../assets/**/*.{jpg,jpeg,png,webp,avif,JPG,JPEG,PNG,WEBP,AVIF}",
+  { eager: true }
+);
+
+const sinAcentos = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const archivoDe  = (ruta: string) => ruta.split("/").pop() ?? "";
+const numeroDe   = (nombre: string) => { const m = nombre.match(/(\d+)(?=\.[^.]+$)/); return m ? parseInt(m[1], 10) : 0; };
+
+const CATALOGO = Object.entries(IMAGENES).map(([ruta, mod]) => {
+  const rutaNorm = sinAcentos(ruta);
+  return {
+    rutaNorm,
+    archivo:   archivoDe(ruta),
+    src:       mod.default.src,
+    esPortada: /portada/.test(rutaNorm),
+    esFoto:    /fotos-?productos/.test(rutaNorm),
+  };
+});
+
+function resolverFotos(p: (typeof PRODUCTOS)[number]) {
+  const idNorm = sinAcentos(p.id);
+  const portada = CATALOGO.find((e) => e.esPortada && e.rutaNorm.includes(idNorm));
+  const fotos = CATALOGO
+    .filter((e) => e.esFoto && !e.esPortada && e.rutaNorm.includes(idNorm))
+    .sort((a, b) => numeroDe(a.archivo) - numeroDe(b.archivo))
+    .map((e) => e.src);
+  return { ...p, portadaSrc: portada ? portada.src : null, fotos };
+}
+
+const PRODUCTOS_WEB = PRODUCTOS.map(resolverFotos);
 
 /* Si el nombre contiene "Azahar", esa palabra va en dorado (diseño original) */
 const partes = TIENDA.nombre.includes("Azahar") ? TIENDA.nombre.split("Azahar") : null;
@@ -15,7 +64,7 @@ const descripcion =
 <header class="cabecera">
 <div>
 	<div class="marca">
-		<img src="../../src/assets/logo.png" alt={TIENDA.nombre} class="logo" />
+		{partes ? <>{partes[0]}<span class="azahar">Azahar</span>{partes[1]}</> : TIENDA.nombre}
 	</div>
 	<p class="lema">{TIENDA.lema}</p>
 </div>
@@ -52,7 +101,7 @@ const descripcion =
 <p class="legal">{TIENDA.legal}</p>
 </footer>
 
-<script is:inline define:vars={{ TIENDA, HILOS, PRODUCTOS }}>
+<script is:inline define:vars={{ TIENDA, HILOS, PRODUCTOS: PRODUCTOS_WEB }}>
 /* ================================================================
 A PARTIR DE AQUÍ ES EL MOTOR DE LA WEB
 (normalmente no hace falta tocarlo)
@@ -66,7 +115,10 @@ const esc = s => String(s).replace(/[&<>"']/g, c => (
 /* ---- estado de las elecciones (uno por producto) ---- */
 const estado = {};
 for (const p of PRODUCTOS){
-estado[p.id] = { sel:{}, txt:{}, extras:{}, nota:'', cantidad:1, vista:'preview' };
+const primeraVista = p.portadaSrc ? 'portada'
+					: (p.fotos && p.fotos.length) ? 'foto-0'
+					: 'preview';
+estado[p.id] = { sel:{}, txt:{}, extras:{}, nota:'', cantidad:1, vista:primeraVista };
 for (const o of (p.opciones||[])){
 	if (o.tipo === 'texto') estado[p.id].txt[o.id] = '';
 	else estado[p.id].sel[o.id] = o.defecto ?? o.valores[0].id;
@@ -290,16 +342,33 @@ return (p.opciones||[]).map(o => {
 }).join('');
 }
 
+/* Lista ordenada de vistas de la galería:
+   portada · fotos reales · diagrama del bordado (color de hilo en vivo).
+   Si aún no hay fotos, deja huecos indicativos + el diagrama. */
+function vistasDe(p){
+const v = [];
+if (p.portadaSrc) v.push({ id:'portada', etiqueta:'Portada', tipo:'img', src:p.portadaSrc });
+(p.fotos||[]).forEach((src,i) => v.push({ id:'foto-'+i, etiqueta:'Foto '+(i+1), tipo:'img', src }));
+const hayFotos = v.length > 0;
+v.push({ id:'preview', etiqueta:'Bordado', tipo:'preview' });   // ← el diagrama que cambia con el hilo
+if (!hayFotos) [1,2,3].forEach(i => v.push({ id:'hueco-'+i, etiqueta:'Foto '+i, tipo:'hueco' }));
+return v;
+}
+
 function pintarProducto(){
 const p = producto(), s = st();
 const cont = document.getElementById('producto');
 
-const miniaturas = [
-	`<button data-vista="preview" aria-current="${s.vista==='preview'}">Bordado</button>`,
-	...(p.fotos.length
-		? p.fotos.map((f,i) => `<button data-vista="foto-${i}" aria-current="${s.vista==='foto-'+i}">Foto ${i+1}</button>`)
-		: [1,2,3].map(i => `<button data-vista="hueco-${i}" aria-current="${s.vista==='hueco-'+i}">Foto ${i}</button>`))
-].join('');
+const miniIcono = `<svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 24 C14 10 22 10 28 22"/><circle cx="24" cy="9" r="3.4"/><path d="M9 27 h16"/></svg>`;
+const contenidoMini = v => {
+	if (v.tipo === 'img')     return `<img src="${v.src}" alt="" loading="lazy">`;
+	if (v.tipo === 'preview') return `<span class="mini-svg">${p.id==='cinta' ? svgCinta() : svgBoceto(p.icono)}</span>`;
+	return `<span class="mini-hueco">${miniIcono}</span>`;
+};
+const miniaturas = vistasDe(p).map(v =>
+	`<button class="mini mini-${v.tipo}" data-vista="${v.id}" title="${esc(v.etiqueta)}"
+			aria-label="${esc(v.etiqueta)}" aria-current="${s.vista===v.id}">${contenidoMini(v)}</button>`
+).join('');
 
 cont.innerHTML = `
 	<div class="galeria">
@@ -410,11 +479,14 @@ const pie = document.getElementById('pie-lienzo');
 if (s.vista === 'preview'){
 	lienzo.innerHTML = (p.id === 'cinta') ? svgCinta() : svgBoceto(p.icono);
 	pie.textContent = (p.id === 'cinta')
-	? 'Vista previa orientativa del bordado'
+	? 'Diagrama del bordado · cambia con el color del hilo'
 	: 'Boceto · las fotos reales irán aquí';
+} else if (s.vista === 'portada'){
+	lienzo.innerHTML = `<img src="${p.portadaSrc}" alt="${esc(p.nombre)}" style="border-radius:10px">`;
+	pie.textContent = '';
 } else if (s.vista.startsWith('foto-')){
 	const f = p.fotos[Number(s.vista.split('-')[1])];
-	lienzo.innerHTML = `<img src="${esc(f)}" alt="${esc(p.nombre)}" style="border-radius:10px">`;
+	lienzo.innerHTML = `<img src="${f}" alt="${esc(p.nombre)}" style="border-radius:10px">`;
 	pie.textContent = '';
 } else {
 	lienzo.innerHTML = `
@@ -428,6 +500,10 @@ if (s.vista === 'preview'){
 	</div>`;
 	pie.textContent = '';
 }
+
+/* la miniatura del bordado sigue el color de hilo elegido */
+const miniPrev = document.querySelector('#miniaturas .mini-preview .mini-svg');
+if (miniPrev) miniPrev.innerHTML = (p.id === 'cinta') ? svgCinta() : svgBoceto(p.icono);
 
 /* nombre del color de hilo elegido */
 (p.opciones||[]).filter(o => o.tipo === 'muestras').forEach(o => {

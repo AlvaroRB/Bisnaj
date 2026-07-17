@@ -57,19 +57,13 @@ const {
     text-transform:uppercase; padding:.55rem 1rem;
     }
 
-    .logo {
-      height: 160px;
-      width: auto;
-      display: block;
-    }
-
     /* ---------- cabecera ---------- */
     .cabecera{
     max-width:1120px; margin:0 auto; padding:2.2rem 1.5rem 1.4rem;
     display:flex; align-items:flex-end; justify-content:space-between; gap:1rem;
     }
     .marca{ font-family:var(--f-titulo); font-size:clamp(1.7rem,4vw,2.3rem); font-weight:400; letter-spacing:.02em }
-    .marca .azahar{ color:var(--oro) }
+    .marca .bisnaj{ color:var(--oro) }
     .lema{ color:var(--tinta-2); font-size:.92rem; margin-top:.15rem }
     .enlace-contacto{
     font-size:.8rem; letter-spacing:.12em; text-transform:uppercase;
@@ -117,13 +111,17 @@ const {
     }
     .miniaturas{ display:flex; gap:.6rem; margin-top:.9rem; flex-wrap:wrap }
     .miniaturas button{
-    width:64px; height:64px; border-radius:10px;
+    width:64px; height:64px; border-radius:10px; overflow:hidden;
     border:1px solid var(--empolvado); background:var(--blanco);
+    padding:0; cursor:pointer; position:relative;
     display:flex; align-items:center; justify-content:center;
-    font-size:.62rem; letter-spacing:.05em; color:var(--tinta-2);
-    text-align:center; line-height:1.2; padding:4px;
     }
-    .miniaturas button[aria-current="true"]{ border-color:var(--tinta); color:var(--tinta) }
+    .miniaturas button img{ width:100%; height:100%; object-fit:cover; display:block }
+    .miniaturas .mini-svg{ display:flex; width:100%; height:100%; align-items:center; justify-content:center; padding:3px }
+    .miniaturas .mini-svg svg{ width:100%; height:100% }
+    .miniaturas .mini-hueco{ display:flex; width:100%; height:100%; align-items:center; justify-content:center; padding:14px; color:var(--tinta-2) }
+    .miniaturas .mini-hueco svg{ width:100%; height:100% }
+    .miniaturas button[aria-current="true"]{ border-color:var(--tinta); box-shadow:0 0 0 2px var(--tinta) }
     .hueco-foto{
     width:100%; max-width:360px; aspect-ratio:3/4; margin:0 auto;
     border:1.5px dashed var(--empolvado); border-radius:12px;
