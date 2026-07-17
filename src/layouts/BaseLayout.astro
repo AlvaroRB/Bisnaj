@@ -64,6 +64,8 @@ const {
     }
     .marca{ font-family:var(--f-titulo); font-size:clamp(1.7rem,4vw,2.3rem); font-weight:400; letter-spacing:.02em }
     .marca .bisnaj{ color:var(--oro) }
+    .marca-grupo{ display:flex; align-items:center; gap:.9rem }
+    .logo{ height:clamp(46px,7vw,64px); width:auto; display:block }
     .lema{ color:var(--tinta-2); font-size:.92rem; margin-top:.15rem }
     .enlace-contacto{
     font-size:.8rem; letter-spacing:.12em; text-transform:uppercase;
@@ -141,8 +143,15 @@ const {
     border:1px solid var(--empolvado); border-radius:999px; padding:.2rem .6rem;
     }
     .precio-desde{ font-size:1.02rem; margin-bottom:1rem }
-    .precio-desde small{ color:var(--tinta-2); font-size:.8rem; margin-left:.35rem }
     .descripcion p{ color:var(--tinta-2); margin-bottom:.7rem; max-width:56ch }
+
+    /* encabezados de sección del configurador (¡Vivan los novios!, Motivos…) */
+    .seccion{
+    font-family:var(--f-titulo); font-weight:400; font-size:1.15rem;
+    margin-top:2.4rem; padding-top:1.5rem; border-top:1px solid var(--empolvado);
+    }
+    .oblig{ color:var(--oro) }
+    .mas{ color:var(--tinta-2); font-size:.85rem }
 
     .grupo{ margin-top:1.6rem }
     .grupo-cabecera{
@@ -153,7 +162,8 @@ const {
     font-size:.8rem; letter-spacing:.13em; text-transform:uppercase;
     }
     .grupo-cabecera .valor{ font-size:.85rem; color:var(--tinta-2) }
-    .ayuda{ font-size:.8rem; color:var(--tinta-2); margin-top:.45rem }
+    .ayuda{ font-size:.8rem; color:var(--tinta-2); margin-top:.45rem; font-style:italic }
+    .ayuda.arriba{ margin:0 0 .55rem }
 
     /* opciones tipo botón */
     .botones{ display:flex; flex-wrap:wrap; gap:.55rem }
@@ -169,6 +179,28 @@ const {
     .botones label:has(input:checked) small{ color:var(--empolvado) }
     .botones label:has(input:focus-visible){ outline:2px solid var(--oro); outline-offset:2px }
 
+    /* botones en lista con nota debajo (ej. acabado de la cinta) */
+    .botones-lista{ display:grid; gap:.55rem }
+    .botones-lista label{
+    display:flex; gap:.7rem; align-items:flex-start;
+    border:1px solid var(--empolvado); border-radius:12px; background:var(--blanco);
+    padding:.75rem .9rem; transition:border-color .15s, box-shadow .15s;
+    }
+    .botones-lista input{ margin-top:.2rem; width:16px; height:16px; accent-color:var(--tinta); flex:none }
+    .botones-lista label:has(input:checked){ border-color:var(--tinta); box-shadow:0 0 0 1px var(--tinta) }
+    .botones-lista label:has(input:focus-visible){ outline:2px solid var(--oro); outline-offset:2px }
+    .botones-lista .bl-nombre{ display:flex; gap:.6rem; align-items:baseline; font-size:.93rem }
+    .botones-lista .bl-nota{ display:block; font-size:.8rem; color:var(--tinta-2); font-style:italic; margin-top:.15rem }
+
+    /* casillas sueltas con recargo (detalles en dorado, cuentas…) */
+    .check-linea{
+    display:flex; align-items:center; gap:.65rem;
+    padding:.65rem .2rem; border-bottom:1px dashed var(--empolvado);
+    font-size:.93rem; margin-top:.35rem;
+    }
+    .check-linea input{ width:17px; height:17px; accent-color:var(--tinta) }
+    .check-linea .mas{ margin-left:auto }
+
     /* muestras de color */
     .muestras{ display:flex; flex-wrap:wrap; gap:.7rem }
     .muestras label{ position:relative; width:36px; height:36px; border-radius:50%;
@@ -178,6 +210,11 @@ const {
     .muestras input{ position:absolute; opacity:0; pointer-events:none }
     .muestras label:has(input:checked){ box-shadow:0 0 0 2px var(--tinta) }
     .muestras label:has(input:focus-visible){ outline:2px solid var(--oro); outline-offset:3px }
+    .muestras .muestra-otro{
+    background:var(--blanco); display:flex; align-items:center; justify-content:center;
+    color:var(--tinta-2); font-size:1.15rem; line-height:1; user-select:none;
+    }
+    .campo-otro{ margin-top:.6rem }
 
     /* campos de texto */
     .campo input[type=text], .campo textarea{
@@ -203,11 +240,13 @@ const {
     display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
     }
     .total{ font-family:var(--f-titulo); font-size:1.45rem }
-    .total small{ font-family:var(--f-texto); font-size:.75rem; color:var(--tinta-2); margin-left:.4rem }
-    .cantidad{ display:inline-flex; align-items:center; border:1px solid var(--empolvado); border-radius:999px; background:var(--blanco) }
-    .cantidad button{ width:38px; height:38px; font-size:1.05rem; color:var(--tinta-2) }
-    .cantidad button:hover{ color:var(--tinta) }
-    .cantidad output{ min-width:26px; text-align:center; font-weight:500 }
+
+    /* aviso de campos obligatorios sin rellenar */
+    .aviso-form{
+    margin-top:1rem; font-size:.85rem; color:#7C2F3E;
+    background:#F7ECEC; border:1px solid #E7CFCF; border-radius:10px;
+    padding:.6rem .85rem;
+    }
 
     .acciones{ display:grid; gap:.6rem; margin-top:1.1rem }
     .btn-principal{
@@ -222,7 +261,6 @@ const {
     text-align:center;
     }
     .btn-secundario:hover{ border-color:var(--tinta) }
-    .nota-plazo{ font-size:.78rem; color:var(--tinta-2); text-align:center; margin-top:.4rem }
 
     /* ---------- pestañas de información ---------- */
     .info{ max-width:1120px; margin:0 auto 3.5rem; padding:0 1.5rem }
@@ -242,7 +280,7 @@ const {
     padding:2.6rem 1.5rem 2.2rem;
     }
     .pie-int{ max-width:1120px; margin:0 auto; display:grid; gap:1.6rem }
-    @media(min-width:720px){ .pie-int{ grid-template-columns:1.4fr 1fr 1fr; align-items:start } }
+    @media(min-width:720px){ .pie-int{ grid-template-columns:1.4fr 1fr; align-items:start } }
     .pie-int h3{ font-family:var(--f-titulo); font-weight:400; font-size:1.25rem; margin-bottom:.3rem }
     .pie-int p, .pie-int a{ color:var(--tinta-2); font-size:.9rem; text-decoration:none }
     .pie-int a:hover{ color:var(--tinta) }
