@@ -1,8 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { TIENDA, HILOS, PRODUCTOS } from "../data/tienda.js";
-import { Image } from 'astro:assets';
-import logoImg from "../assets/logo.png";
 import type { ImageMetadata } from "astro";
 
 /* ================================================================
@@ -64,18 +62,16 @@ const descripcion =
 <div class="aviso">{TIENDA.anuncio}</div>
 
 <header class="cabecera">
-  <div class="marca-grupo">
-    {logoImg && (
-      <Image class="logo" src={logoImg} alt={TIENDA.nombre} width={64} height={64} />
-    )}
-    <div>
-      <div class="marca">
-        {partes ? <>{partes[0]}<span class="azahar">Bisnaj</span>{partes[1]}</> : TIENDA.nombre}
-      </div>
-      <p class="lema">{TIENDA.lema}</p>
-    </div>
-  </div>
-  <a class="enlace-contacto" href="#contacto">Contacto</a>
+	<div class="marca-grupo">
+		{TIENDA.logo && <img class="logo" src={TIENDA.logo} alt={TIENDA.nombre} width="64" height="64" />}
+		<div>
+			<div class="marca">
+				{partes ? <>{partes[0]}<span class="azahar">Azahar</span>{partes[1]}</> : TIENDA.nombre}
+			</div>
+			<p class="lema">{TIENDA.lema}</p>
+		</div>
+	</div>
+	<a class="enlace-contacto" href="#contacto">Contacto</a>
 </header>
 
 <nav class="pestanas" id="pestanas" role="tablist" aria-label="Productos"></nav>
@@ -94,14 +90,9 @@ const descripcion =
 	<div>
 	<h3>Escríbenos</h3>
 	<ul>
-		<li><a href={`mailto:${TIENDA.email}`}>{TIENDA.email}</a></li>
 		{TIENDA.whatsapp && <li><a href={`https://wa.me/${TIENDA.whatsapp}`}>WhatsApp</a></li>}
-	</ul>
-	</div>
-	<div>
-	<h3>Síguenos</h3>
-	<ul>
 		<li><a href={`https://instagram.com/${TIENDA.instagram.replace("@","")}`} target="_blank" rel="noopener">{TIENDA.instagram}</a></li>
+		<li><a href={`mailto:${TIENDA.email}`}>{TIENDA.email}</a></li>
 	</ul>
 	</div>
 </div>
@@ -125,10 +116,13 @@ for (const p of PRODUCTOS){
 const primeraVista = p.portadaSrc ? 'portada'
 					: (p.fotos && p.fotos.length) ? 'foto-0'
 					: 'preview';
-estado[p.id] = { sel:{}, txt:{}, extras:{}, nota:'', cantidad:1, vista:primeraVista };
+estado[p.id] = { sel:{}, txt:{}, chk:{}, extras:{}, nota:'', envio:'', vista:primeraVista };
 for (const o of (p.opciones||[])){
-	if (o.tipo === 'texto') estado[p.id].txt[o.id] = '';
-	else estado[p.id].sel[o.id] = o.defecto ?? o.valores[0].id;
+	if (o.tipo === 'titulo') continue;
+	if (o.tipo === 'texto'){ estado[p.id].txt[o.id] = ''; continue; }
+	if (o.tipo === 'check'){ estado[p.id].chk[o.id] = false; continue; }
+	estado[p.id].sel[o.id] = o.defecto ?? o.valores[0].id;
+	if (o.otro) estado[p.id].txt[o.id + 'Otro'] = '';
 }
 }
 let productoActivo = PRODUCTOS[0].id;
@@ -140,7 +134,13 @@ const st = () => estado[productoActivo];
 function precioUnidad(p, s){
 let total = p.precioBase;
 for (const o of (p.opciones||[])){
-	if (o.tipo === 'texto') continue;
+	if (o.tipo === 'titulo') continue;
+	if (o.tipo === 'check'){ if (s.chk[o.id]) total += o.precio || 0; continue; }
+	if (o.tipo === 'texto'){
+	if (o.precio && (s.txt[o.id]||'').trim()) total += o.precio;
+	continue;
+	}
+	if (s.sel[o.id] === 'otro') continue;           /* "otro" no altera el precio */
 	const v = o.valores.find(v => v.id === s.sel[o.id]);
 	if (v && v.precio) total += v.precio;
 }
@@ -149,7 +149,12 @@ return total;
 }
 
 function valorLegible(p, s, o){
-if (o.tipo === 'texto') return s.txt[o.id] || '—';
+if (o.tipo === 'texto') return (s.txt[o.id]||'').trim() || '—';
+if (o.tipo === 'check') return s.chk[o.id] ? 'sí' : 'no';
+if (o.otro && s.sel[o.id] === 'otro'){
+	const t = (s.txt[o.id + 'Otro']||'').trim();
+	return t ? `Otro (${t})` : 'Otro (sin especificar)';
+}
 const v = o.valores.find(v => v.id === s.sel[o.id]);
 return v ? (v.nombre + (v.detalle ? ` (${v.detalle})` : '')) : '—';
 }
@@ -157,108 +162,126 @@ return v ? (v.nombre + (v.detalle ? ` (${v.detalle})` : '')) : '—';
 function resumenPedido(){
 const p = producto(), s = st();
 const lineas = [`Pedido · ${p.nombre}`];
-for (const o of (p.opciones||[])) lineas.push(`· ${o.etiqueta}: ${valorLegible(p,s,o)}`);
+for (const o of (p.opciones||[])){
+	if (o.tipo === 'titulo') continue;
+	if (o.tipo === 'check'){
+	if (s.chk[o.id]) lineas.push(`· ${o.etiqueta}: sí (+${eur(o.precio)})`);
+	continue;
+	}
+	if (o.tipo === 'texto'){
+	const t = (s.txt[o.id]||'').trim();
+	if (!t && !o.obligatorio) continue;             /* los opcionales vacíos no ensucian el resumen */
+	lineas.push(`· ${o.etiqueta}: ${t || '—'}${(o.precio && t) ? ` (+${eur(o.precio)})` : ''}`);
+	continue;
+	}
+	lineas.push(`· ${o.etiqueta}: ${valorLegible(p,s,o)}`);
+}
 const ex = (p.extras||[]).filter(e => s.extras[e.id]).map(e => e.nombre);
-lineas.push(`· Extras: ${ex.length ? ex.join(', ') : 'ninguno'}`);
-lineas.push(`· Cantidad: ${s.cantidad}`);
-if (s.nota.trim()) lineas.push(`· Nota: ${s.nota.trim()}`);
-lineas.push(`Total estimado: ${eur(precioUnidad(p,s)*s.cantidad)} (IVA incluido)`);
+if (ex.length) lineas.push(`· Extras: ${ex.join(', ')}`);
+if (s.nota.trim())  lineas.push(`· Observaciones: ${s.nota.trim()}`);
+if (s.envio.trim()) lineas.push(`· Envío a: ${s.envio.trim()} (costes de envío no incluidos)`);
+lineas.push(`Total estimado: ${eur(precioUnidad(p,s))}`);
 return lineas.join('\n');
+}
+
+/* Campos obligatorios sin rellenar (incluye el "Otro" de los colores) */
+function camposPendientes(){
+const p = producto(), s = st();
+const faltan = [];
+for (const o of (p.opciones||[])){
+	if (o.tipo === 'texto' && o.obligatorio && !(s.txt[o.id]||'').trim())
+	faltan.push({ selector:`#txt-${o.id}`, etiqueta:o.etiqueta });
+	if (o.otro && s.sel[o.id] === 'otro' && !(s.txt[o.id + 'Otro']||'').trim())
+	faltan.push({ selector:`[data-txt="${o.id}Otro"]`, etiqueta:o.etiqueta });
+}
+return faltan;
 }
 
 /* ================================================================
 VISTA PREVIA · SVG
+Dos extremos de la cinta, rectangulares y con flecos abajo (lino
+desflecado). La tela toma el color del lino elegido y los textos
+el color del hilo.
+  · Sin frase → iniciales en un extremo, fecha en el otro.
+  · Con frase → frase en un extremo; iniciales y fecha juntas
+    (una al lado de la otra) en el otro.
 ================================================================ */
 
 function svgCinta(){
 const p = producto(), s = st();
-const hilo   = HILOS.find(h => h.id === s.sel.hilo) || HILOS[0];
-const larga  = s.sel.largo === 'larga';
-const extremo= s.sel.posicion === 'extremo';
-const ini    = (s.txt.iniciales || '').trim() || 'M & J';
-const fecha  = (s.txt.fecha || '').trim() || '12 · 09 · 2026';
-const conFecha = !!s.extras.fechaBordada;
-const puntilla = !!s.extras.puntilla;
 
-const xI = 140, xD = 220;             // bordes de la cinta
-const topTail = 78;                   // arranque bajo el nudo
-const yFin = larga ? 496 : 428;       // largo de la caída
-const cyI = extremo ? yFin - 140
-					: (topTail + yFin)/2 - (conFecha ? 26 : 10);
-const fs  = ini.length > 9 ? 30 : 40; // tamaño de las iniciales
+const opLino = (p.opciones||[]).find(o => o.id === 'lino');
+const opHilo = (p.opciones||[]).find(o => o.id === 'hilo');
+const vLino  = opLino && s.sel.lino !== 'otro' ? opLino.valores.find(v => v.id === s.sel.lino) : null;
+const vHilo  = opHilo && s.sel.hilo !== 'otro' ? opHilo.valores.find(v => v.id === s.sel.hilo) : null;
+const cLino  = vLino ? vLino.color : '#EFE8DA';   /* neutro si eligen "Otro" */
+const cHilo  = vHilo ? vHilo.color : '#33302B';
 
-/* puntilla: bolitas sobre ambos bordes */
-let bolitas = '';
-if (puntilla){
-	for (let y = topTail + 12; y < yFin - 26; y += 13){
-	bolitas += `<circle cx="${xI}" cy="${y}" r="4.4" fill="#FBF6EC" stroke="#E0D2BA" stroke-width="1"/>`;
-	bolitas += `<circle cx="${xD}" cy="${y}" r="4.4" fill="#FBF6EC" stroke="#E0D2BA" stroke-width="1"/>`;
+const ini   = (s.txt.iniciales||'').trim() || 'M & J';
+const fecha = (s.txt.fecha||'').trim()     || '12 · 09 · 2026';
+const frase = (s.txt.frase||'').trim();
+
+/* largo elegido → alto del dibujo (90/120/150 cm a escala 3:4:5) */
+const altos = { corta:300, mediana:400, larga:500 };
+const alto  = altos[s.sel.largo] || 400;
+const yTop = 26, ancho = 66;
+const cxA = 118, cxB = 242;                       /* centros de los dos extremos */
+const yFin = yTop + alto, cy = yTop + alto/2;
+const maxTxt = alto - 56;                          /* hueco útil para el texto   */
+const ajusta = (len, factor, min, max) =>
+	Math.max(min, Math.min(max, maxTxt / (Math.max(len,1) * factor)));
+
+/* un extremo: rectángulo liso + flecos del deshilachado */
+const franja = cx => {
+	const x = cx - ancho/2;
+	let flecos = '';
+	for (let i = 0; i <= 10; i++){
+	const fx = (x + 4 + i * (ancho - 8) / 10).toFixed(1);
+	flecos += `<line x1="${fx}" y1="${yFin}" x2="${fx}" y2="${yFin + 9}"/>`;
 	}
-}
-
-/* florecitas fijas (siempre los mismos tonos) */
-const flor = (cx, cy, r) => {
-	let s = '';
-	for (let k = 0; k < 5; k++){
-	const a = k * 2*Math.PI/5 - Math.PI/2;
-	s += `<circle cx="${(cx + Math.cos(a)*r*1.6).toFixed(1)}" cy="${(cy + Math.sin(a)*r*1.6).toFixed(1)}" r="${r}" fill="#DDBFAE"/>`;
-	}
-	return s + `<circle cx="${cx}" cy="${cy}" r="${(r*0.8).toFixed(1)}" fill="#A9B39B"/>`;
+	return `
+	<rect x="${x}" y="${yTop}" width="${ancho}" height="${alto}"
+			fill="${cLino}" stroke="#3A342B" stroke-opacity=".22"/>
+	<g stroke="${cLino}" stroke-width="1.5" style="filter:brightness(.8)">${flecos}</g>`;
 };
 
-const colaExtra = larga
-	? `<path d="M198 ${topTail} L252 ${topTail} L252 ${yFin-70} L225 ${yFin-88} L198 ${yFin-70} Z"
-			transform="rotate(3 225 ${topTail})"
-			fill="#F3ECDD" stroke="#E6DAC4" stroke-width="1" opacity="0.75"/>`
-	: '';
+/* textos (girados 90° para leerse a lo largo de la cinta) */
+const tIniciales = cx => {
+	const fs = ajusta(ini.length, 0.42, 16, 40);
+	return `<text transform="translate(${cx} ${cy}) rotate(90)" text-anchor="middle"
+	font-family="'Pinyon Script', cursive" font-size="${fs.toFixed(0)}"
+	fill="${cHilo}">${esc(ini)}</text>`;
+};
+const tFecha = cx => `
+	<text transform="translate(${cx} ${cy}) rotate(90)" text-anchor="middle"
+	font-family="Jost, sans-serif" font-size="12" letter-spacing="3"
+	fill="${cHilo}">${esc(fecha)}</text>`;
+const tFrase = cx => {
+	const fs = ajusta(frase.length, 0.40, 12, 30);
+	return `<text transform="translate(${cx} ${cy}) rotate(90)" text-anchor="middle"
+	font-family="'Pinyon Script', cursive" font-size="${fs.toFixed(0)}"
+	fill="${cHilo}">${esc(frase)}</text>`;
+};
+/* iniciales y fecha juntas, una al lado de la otra */
+const tInicialesYFecha = cx => {
+	const anchoFecha = fecha.length * 0.62 * 11 + 12;
+	const fs = ajusta(ini.length, 0.42, 14, 34) * Math.max(.5, (maxTxt - anchoFecha) / maxTxt);
+	return `<text transform="translate(${cx} ${cy}) rotate(90)" text-anchor="middle" fill="${cHilo}">
+	<tspan font-family="'Pinyon Script', cursive" font-size="${fs.toFixed(0)}">${esc(ini)}</tspan>
+	<tspan font-family="Jost, sans-serif" font-size="11" letter-spacing="2" dx="12" dy="-2">${esc(fecha)}</tspan>
+	</text>`;
+};
 
-const fechaTxt = conFecha
-	? `<text transform="translate(158 ${cyI}) rotate(90)" text-anchor="middle"
-			font-family="Jost, sans-serif" font-size="12" letter-spacing="3"
-			fill="${hilo.color}">${esc(fecha)}</text>`
-	: '';
+const extremoA = frase ? tFrase(cxA)          : tIniciales(cxA);
+const extremoB = frase ? tInicialesYFecha(cxB) : tFecha(cxB);
 
 return `
-<svg viewBox="0 0 360 540" xmlns="http://www.w3.org/2000/svg" role="img"
-	aria-label="Vista previa de la cinta del ramo con iniciales ${esc(ini)}">
-	<!-- tallos del ramo -->
-	<g stroke="#7A8471" stroke-width="2" stroke-linecap="round" fill="none">
-	<path d="M166 14 L176 46"/><path d="M180 8 L180 46"/><path d="M194 14 L184 46"/>
-	</g>
-	<circle cx="163" cy="12" r="5" fill="#DDBFAE"/>
-	<circle cx="180" cy="6"  r="5" fill="#E7CBB9"/>
-	<circle cx="197" cy="12" r="5" fill="#DDBFAE"/>
-
-	${colaExtra}
-
-	<!-- caída principal -->
-	<path d="M${xI} ${topTail} L${xD} ${topTail} L${xD} ${yFin} L180 ${yFin-24} L${xI} ${yFin} Z"
-		fill="#FAF4E8" stroke="#E6DAC4" stroke-width="1"/>
-
-	<!-- lazada -->
-	<path d="M178 66 C110 34 96 88 172 78 Z" fill="#F6EFE0" stroke="#E6DAC4" stroke-width="1"/>
-	<path d="M182 66 C250 34 264 88 188 78 Z" fill="#F6EFE0" stroke="#E6DAC4" stroke-width="1"/>
-	<rect x="162" y="56" width="36" height="26" rx="8" fill="#F8F2E6" stroke="#E6DAC4" stroke-width="1"/>
-
-	${bolitas}
-
-	<!-- pespuntes laterales en el color del hilo -->
-	<g stroke="${hilo.color}" stroke-width="1.4" stroke-linecap="round"
-	stroke-dasharray="1.5 5.5" opacity="0.5">
-	<path d="M${xI+6} ${topTail+14} L${xI+6} ${yFin-30}"/>
-	<path d="M${xD-6} ${topTail+14} L${xD-6} ${yFin-30}"/>
-	</g>
-
-	<!-- florecitas del diseño (fijas) -->
-	${flor(180, topTail+26, 3.4)}
-	${flor(163, topTail+38, 2.6)}
-	${flor(197, topTail+38, 2.6)}
-
-	<!-- iniciales bordadas -->
-	<text transform="translate(190 ${cyI}) rotate(90)" text-anchor="middle"
-		font-family="'Pinyon Script', cursive" font-size="${fs}"
-		fill="${hilo.color}">${esc(ini)}</text>
-	${fechaTxt}
+<svg viewBox="0 0 360 552" xmlns="http://www.w3.org/2000/svg" role="img"
+	aria-label="Vista previa de los dos extremos de la cinta con las iniciales ${esc(ini)}">
+	${franja(cxA)}
+	${franja(cxB)}
+	${extremoA}
+	${extremoB}
 </svg>`;
 }
 
@@ -305,17 +328,39 @@ nav.querySelectorAll('button').forEach(b =>
 
 function htmlOpciones(p, s){
 return (p.opciones||[]).map(o => {
+
+	/* encabezado de sección */
+	if (o.tipo === 'titulo')
+	return `<h3 class="seccion">${esc(o.texto)}</h3>`;
+
+	/* campo de texto (con posible *, ayuda y recargo) */
 	if (o.tipo === 'texto'){
 	return `
 	<div class="grupo campo">
-		<div class="grupo-cabecera"><label for="txt-${o.id}">${esc(o.etiqueta)}</label></div>
-		<input type="text" id="txt-${o.id}" data-txt="${o.id}"
-			maxlength="${o.max||30}" placeholder="${esc(o.placeholder||'')}"
+		<div class="grupo-cabecera">
+		<label for="txt-${o.id}">${esc(o.etiqueta)}${o.obligatorio ? ' <span class="oblig">*</span>' : ''}</label>
+		${o.precio ? `<span class="mas">+${eur(o.precio)}</span>` : ''}
+		</div>
+		<input type="text" id="txt-${o.id}" data-txt="${o.id}" ${o.obligatorio ? 'aria-required="true"' : ''}
+			maxlength="${o.max||60}" placeholder="${esc(o.placeholder||'')}"
 			value="${esc(s.txt[o.id])}">
 		${o.ayuda ? `<p class="ayuda">${esc(o.ayuda)}</p>` : ''}
 	</div>`;
 	}
+
+	/* casilla suelta con recargo */
+	if (o.tipo === 'check'){
+	return `
+	<label class="check-linea">
+		<input type="checkbox" data-chk="${o.id}" ${s.chk[o.id] ? 'checked' : ''}>
+		${esc(o.etiqueta)}
+		<span class="mas">+${eur(o.precio)}</span>
+	</label>`;
+	}
+
+	/* muestras de color (con posible "Otro") */
 	if (o.tipo === 'muestras'){
+	const otroSel = s.sel[o.id] === 'otro';
 	return `
 	<div class="grupo">
 		<div class="grupo-cabecera">
@@ -328,10 +373,42 @@ return (p.opciones||[]).map(o => {
 			<input type="radio" name="op-${o.id}" value="${v.id}" data-op="${o.id}"
 					${s.sel[o.id]===v.id?'checked':''} aria-label="${esc(v.nombre)}">
 			</label>`).join('')}
+		${o.otro ? `
+			<label class="muestra-otro" title="Otro color">
+			<input type="radio" name="op-${o.id}" value="otro" data-op="${o.id}"
+					${otroSel?'checked':''} aria-label="Otro color">+
+			</label>` : ''}
+		</div>
+		${o.otro ? `
+		<div class="campo campo-otro" data-otro-de="${o.id}" ${otroSel ? '' : 'hidden'}>
+		<input type="text" data-txt="${o.id}Otro" maxlength="40"
+				placeholder="${esc(o.otro.placeholder||'¿Qué color tienes en mente?')}"
+				value="${esc(s.txt[o.id+'Otro']||'')}">
+		</div>` : ''}
+	</div>`;
+	}
+
+	/* botones con nota → lista con la explicación debajo (ej. acabado) */
+	if (o.valores.some(v => v.nota)){
+	return `
+	<div class="grupo">
+		<div class="grupo-cabecera"><span class="titulo">${esc(o.etiqueta)}</span></div>
+		<div class="botones-lista" role="radiogroup" aria-label="${esc(o.etiqueta)}">
+		${o.valores.map(v => `
+		<label>
+			<input type="radio" name="op-${o.id}" value="${v.id}" data-op="${o.id}"
+				${s.sel[o.id]===v.id?'checked':''}>
+			<span class="bl-texto">
+			<span class="bl-nombre">${esc(v.nombre)}
+				${v.precio ? `<span class="mas">+${eur(v.precio)}</span>` : ''}</span>
+			${v.nota ? `<span class="bl-nota">${esc(v.nota)}</span>` : ''}
+			</span>
+		</label>`).join('')}
 		</div>
 	</div>`;
 	}
-	/* tipo 'botones' */
+
+	/* tipo 'botones' normal (pastillas) */
 	return `
 	<div class="grupo">
 	<div class="grupo-cabecera"><span class="titulo">${esc(o.etiqueta)}</span></div>
@@ -350,14 +427,14 @@ return (p.opciones||[]).map(o => {
 }
 
 /* Lista ordenada de vistas de la galería:
-   portada · fotos reales · diagrama del bordado (color de hilo en vivo).
+   portada · fotos reales · diagrama del bordado (colores en vivo).
    Si aún no hay fotos, deja huecos indicativos + el diagrama. */
 function vistasDe(p){
 const v = [];
 if (p.portadaSrc) v.push({ id:'portada', etiqueta:'Portada', tipo:'img', src:p.portadaSrc });
 (p.fotos||[]).forEach((src,i) => v.push({ id:'foto-'+i, etiqueta:'Foto '+(i+1), tipo:'img', src }));
 const hayFotos = v.length > 0;
-v.push({ id:'preview', etiqueta:'Bordado', tipo:'preview' });   // ← el diagrama que cambia con el hilo
+v.push({ id:'preview', etiqueta:'Bordado', tipo:'preview' });   // ← el diagrama que cambia con lino e hilo
 if (!hayFotos) [1,2,3].forEach(i => v.push({ id:'hueco-'+i, etiqueta:'Foto '+i, tipo:'hueco' }));
 return v;
 }
@@ -365,6 +442,7 @@ return v;
 function pintarProducto(){
 const p = producto(), s = st();
 const cont = document.getElementById('producto');
+const obs = p.observaciones || { etiqueta:'Observaciones', placeholder:'¿Algo que quieras comentarnos?' };
 
 const miniIcono = `<svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 24 C14 10 22 10 28 22"/><circle cx="24" cy="9" r="3.4"/><path d="M9 27 h16"/></svg>`;
 const contenidoMini = v => {
@@ -387,7 +465,7 @@ cont.innerHTML = `
 	<div class="config">
 	<p class="miga">Bodas · ${esc(p.pestana)}</p>
 	<h2>${esc(p.nombre)}${p.borrador ? '<span class="chip-borrador">Borrador</span>' : ''}</h2>
-	<p class="precio-desde">Desde ${eur(p.precioBase)}<small>IVA incluido</small></p>
+	<p class="precio-desde">Desde ${eur(p.precioBase)}</p>
 	<div class="descripcion">${p.descripcion.map(t => `<p>${esc(t)}</p>`).join('')}</div>
 
 	${htmlOpciones(p, s)}
@@ -404,23 +482,27 @@ cont.innerHTML = `
 	</div>` : ''}
 
 	<div class="grupo campo">
-		<div class="grupo-cabecera"><label for="nota">Nota del pedido</label></div>
-		<textarea id="nota" placeholder="Cuéntanos cualquier detalle que debamos saber.">${esc(s.nota)}</textarea>
+		<div class="grupo-cabecera"><label for="nota">${esc(obs.etiqueta)}</label></div>
+		<textarea id="nota" placeholder="${esc(obs.placeholder)}">${esc(s.nota)}</textarea>
 	</div>
 
 	<div class="linea-total">
 		<p class="total" id="total"></p>
-		<div class="cantidad" aria-label="Cantidad">
-		<button type="button" data-delta="-1" aria-label="Quitar una unidad">−</button>
-		<output id="cantidad">${s.cantidad}</output>
-		<button type="button" data-delta="1" aria-label="Añadir una unidad">+</button>
-		</div>
 	</div>
+
+	${p.envio ? `
+	<div class="grupo campo">
+		<div class="grupo-cabecera"><label for="envio">${esc(p.envio.etiqueta)}</label></div>
+		${p.envio.pregunta ? `<p class="ayuda arriba">${esc(p.envio.pregunta)}</p>` : ''}
+		<textarea id="envio" placeholder="${esc(p.envio.placeholder||'')}">${esc(s.envio)}</textarea>
+		${p.envio.ayuda ? `<p class="ayuda">${esc(p.envio.ayuda)}</p>` : ''}
+	</div>` : ''}
+
+	<p class="aviso-form" id="aviso-form" hidden></p>
 
 	<div class="acciones">
 		<button class="btn-principal" id="btn-solicitar"></button>
 		<button class="btn-secundario" id="btn-copiar">Copiar resumen del diseño</button>
-		<p class="nota-plazo">Elaboración: 15 días laborables · Envío en 48 h</p>
 	</div>
 	</div>
 `;
@@ -432,17 +514,16 @@ cont.querySelectorAll('[data-op]').forEach(el =>
 cont.querySelectorAll('[data-txt]').forEach(el =>
 	el.addEventListener('input', () => { s.txt[el.dataset.txt] = el.value; refrescar(); }));
 
+cont.querySelectorAll('[data-chk]').forEach(el =>
+	el.addEventListener('change', () => { s.chk[el.dataset.chk] = el.checked; refrescar(); }));
+
 cont.querySelectorAll('[data-extra]').forEach(el =>
 	el.addEventListener('change', () => { s.extras[el.dataset.extra] = el.checked; refrescar(); }));
 
 cont.querySelector('#nota').addEventListener('input', e => { s.nota = e.target.value; });
 
-cont.querySelectorAll('[data-delta]').forEach(el =>
-	el.addEventListener('click', () => {
-	s.cantidad = Math.max(1, s.cantidad + Number(el.dataset.delta));
-	document.getElementById('cantidad').textContent = s.cantidad;
-	refrescar();
-	}));
+const envioEl = cont.querySelector('#envio');
+if (envioEl) envioEl.addEventListener('input', e => { s.envio = e.target.value; });
 
 cont.querySelectorAll('#miniaturas button').forEach(el =>
 	el.addEventListener('click', () => {
@@ -453,6 +534,16 @@ cont.querySelectorAll('#miniaturas button').forEach(el =>
 	}));
 
 cont.querySelector('#btn-solicitar').addEventListener('click', () => {
+	const faltan = camposPendientes();
+	const aviso = document.getElementById('aviso-form');
+	if (faltan.length){
+	aviso.hidden = false;
+	aviso.textContent = 'Para preparar tu pedido nos falta: ' + faltan.map(f => f.etiqueta).join(' · ');
+	const el = cont.querySelector(faltan[0].selector);
+	if (el){ el.scrollIntoView({ behavior:'smooth', block:'center' }); el.focus({ preventScroll:true }); }
+	return;
+	}
+	aviso.hidden = true;
 	const texto = resumenPedido();
 	if (TIENDA.whatsapp){
 	window.open(`https://wa.me/${TIENDA.whatsapp}?text=${encodeURIComponent(texto)}`, '_blank');
@@ -486,7 +577,7 @@ const pie = document.getElementById('pie-lienzo');
 if (s.vista === 'preview'){
 	lienzo.innerHTML = (p.id === 'cinta') ? svgCinta() : svgBoceto(p.icono);
 	pie.textContent = (p.id === 'cinta')
-	? 'Diagrama del bordado · cambia con el color del hilo'
+	? 'Diagrama orientativo de los dos extremos · cambia con el lino y el hilo elegidos'
 	: 'Boceto · las fotos reales irán aquí';
 } else if (s.vista === 'portada'){
 	lienzo.innerHTML = `<img src="${p.portadaSrc}" alt="${esc(p.nombre)}" style="border-radius:10px">`;
@@ -508,27 +599,42 @@ if (s.vista === 'preview'){
 	pie.textContent = '';
 }
 
-/* la miniatura del bordado sigue el color de hilo elegido */
+/* la miniatura del bordado sigue los colores elegidos */
 const miniPrev = document.querySelector('#miniaturas .mini-preview .mini-svg');
 if (miniPrev) miniPrev.innerHTML = (p.id === 'cinta') ? svgCinta() : svgBoceto(p.icono);
 
-/* nombre del color de hilo elegido */
+/* nombre del color elegido (o lo escrito en "Otro") */
 (p.opciones||[]).filter(o => o.tipo === 'muestras').forEach(o => {
-	const v = o.valores.find(v => v.id === s.sel[o.id]);
 	const etq = document.querySelector(`[data-etq="${o.id}"]`);
-	if (etq) etq.textContent = v ? v.nombre : '';
+	if (!etq) return;
+	if (o.otro && s.sel[o.id] === 'otro'){
+	etq.textContent = (s.txt[o.id+'Otro']||'').trim() || 'Otro';
+	} else {
+	const v = o.valores.find(v => v.id === s.sel[o.id]);
+	etq.textContent = v ? v.nombre : '';
+	}
 });
 
-/* total */
-document.getElementById('total').innerHTML =
-	`${eur(precioUnidad(p,s) * s.cantidad)}<small>IVA incluido</small>`;
+/* mostrar u ocultar los campos "Otro" */
+(p.opciones||[]).forEach(o => {
+	if (!o.otro) return;
+	const caja = document.querySelector(`[data-otro-de="${o.id}"]`);
+	if (caja) caja.hidden = s.sel[o.id] !== 'otro';
+});
+
+/* si ya no falta nada, retira el aviso de campos pendientes */
+const aviso = document.getElementById('aviso-form');
+if (aviso && !aviso.hidden && !camposPendientes().length) aviso.hidden = true;
+
+/* total (sin IVA ni cantidades: cada cinta se pide con sus datos) */
+document.getElementById('total').textContent = eur(precioUnidad(p,s));
 
 /* texto del botón principal */
 document.getElementById('btn-solicitar').textContent =
 	TIENDA.whatsapp ? 'Solicitar por WhatsApp' : 'Solicitar por email';
 }
 
-/* pestañas de información (Más info / Plazos / Devoluciones) */
+/* pestañas de información (Más info / Cambios y devoluciones) */
 function pintarInfo(){
 const p = producto();
 const claves = Object.keys(p.info || {});

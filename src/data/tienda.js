@@ -4,19 +4,31 @@ Todo lo que ve la clienta sale de este bloque: nombre de la
 tienda, contacto, productos, opciones, precios y textos.
 Para añadir un producto nuevo, copia uno de los bloques de
 PRODUCTOS y cambia sus datos: la web lo pinta sola.
+
+Tipos de opción disponibles:
+  · botones   → elegir uno entre varios (pastillas). Si algún valor
+                lleva `nota`, se pintan en lista con la nota debajo.
+  · muestras  → círculos de color. Con `otro:{…}` se añade la
+                opción "Otro" que despliega un campo de texto.
+  · texto     → campo de texto. `obligatorio:true` lo marca con *
+                y se comprueba antes de enviar el pedido.
+                `precio:X` suma X € solo si se rellena (ej. la frase).
+  · check     → casilla suelta con recargo (ej. detalles en dorado).
+  · titulo    → encabezado de sección (ej. "¡Vivan los novios!").
 ================================================================ */
 
 export const TIENDA = {
 nombre:    'Bisnaj',
 lema:      'Accesorios de boda bordados a mano',
+logo:	   'src/assets/logo.png',  // ← ruta de tu logo (si no hay, se pinta solo el nombre)
 anuncio:   'Cada pieza se hace a mano y bajo pedido · Agenda 2026–2027 abierta',
-email:     'hola@biznaj.es',      // ← tu email real
+email:     'hola@biznaj.es',      // ← tu email real (¡confirmar si es con S o con Z!)
 whatsapp:  '34661714720',                            // ← nº con prefijo, ej. '34612345678' (si está vacío, el botón usa el email)
 instagram: '@bisnaj_',              // ← tu Instagram
 legal:     '© 2026 · Recomendamos hacer los pedidos con al menos tres meses de antelación.'
 };
 
-/* Colores de hilo disponibles (compartidos por todos los productos) */
+/* Colores de hilo disponibles (los usan los productos en borrador) */
 export const HILOS = [
 { id:'beige',    nombre:'Beige',           color:'#C3A878' },
 { id:'dorado',   nombre:'Dorado',          color:'#A67C2E' },
@@ -35,42 +47,93 @@ export const PRODUCTOS = [
 	nombre:'Cinta del ramo',
 	precioBase: 45,
 	descripcion: [
-	'Cinta de algodón para el ramo de novia, bordada a mano con vuestras iniciales.',
-	'El diseño de florecitas es fijo y siempre va en los mismos tonos; el color de las iniciales lo eliges tú.'
+	'Cinta de lino para ramos bordada a mano y completamente personalizada.'
 	],
 	opciones: [
+
+	/* --- largo --- */
 	{ id:'largo', etiqueta:'Largo de la cinta', tipo:'botones', defecto:'corta',
 		valores:[
-		{ id:'corta', nombre:'Corta', detalle:'70 cm',  precio:0 },
-		{ id:'larga', nombre:'Larga', detalle:'140 cm', precio:10 }
+		{ id:'corta',   nombre:'Corta',   detalle:'70 cm',  precio:0 },
+		{ id:'mediana', nombre:'Mediana', detalle:'120 cm', precio:5 },
+		{ id:'larga',   nombre:'Larga',   detalle:'150 cm', precio:10 }
 		]},
-	{ id:'hilo', etiqueta:'Color del hilo', tipo:'muestras', defecto:'granate', valores:HILOS },
-	{ id:'posicion', etiqueta:'Posición del bordado', tipo:'botones', defecto:'centro',
+
+	/* --- color del lino (la cinta) --- */
+	{ id:'lino', etiqueta:'Color del lino', tipo:'muestras', defecto:'blanco-roto',
+		otro:{ placeholder:'Cuéntanos qué color tienes en mente' },
 		valores:[
-		{ id:'centro',  nombre:'Centro',  precio:0 },
-		{ id:'extremo', nombre:'Extremo', precio:0 }
+		{ id:'blanco-roto', nombre:'Blanco roto',   color:'#F4EFE3' },
+		{ id:'beige',       nombre:'Beige rústico', color:'#D8C6A6' },
+		{ id:'mostaza',     nombre:'Mostaza',       color:'#C89B3C' },
+		{ id:'oliva',       nombre:'Verde oliva',   color:'#7E7C52' },
+		{ id:'celeste',     nombre:'Azul celeste',  color:'#A9C3D6' },
+		{ id:'granate',     nombre:'Granate',       color:'#7C2F3E' }
 		]},
-	{ id:'iniciales', etiqueta:'Iniciales', tipo:'texto', placeholder:'M & J', max:14,
+
+	/* --- color del hilo de iniciales y fecha --- */
+	{ id:'hilo', etiqueta:'Color de las iniciales y la fecha', tipo:'muestras', defecto:'verde-oscuro',
+		otro:{ placeholder:'Cuéntanos qué color tienes en mente' },
+		valores:[
+		{ id:'verde-oscuro', nombre:'Verde oscuro',     color:'#31462F' },
+		{ id:'burdeos',      nombre:'Burdeos',          color:'#6B2737' },
+		{ id:'chocolate',    nombre:'Marrón chocolate', color:'#4E3524' }
+		]},
+
+	/* --- los novios --- */
+	{ tipo:'titulo', texto:'¡Vivan los novios!' },
+
+	{ id:'iniciales', etiqueta:'¿Iniciales o nombres completos?', tipo:'texto', obligatorio:true,
+		placeholder:'M & J · María y Javier', max:40,
 		ayuda:'Tal y como quieras que se borden.' },
-	{ id:'fecha', etiqueta:'Fecha de la boda', tipo:'texto', placeholder:'12 · 09 · 2026', max:16,
-		ayuda:'Informativa: solo se borda si añades el extra de fecha bordada.' }
+
+	{ id:'fecha', etiqueta:'Fecha', tipo:'texto', obligatorio:true,
+		placeholder:'12 · 09 · 2026', max:16 },
+
+	/* --- motivos del bordado --- */
+	{ tipo:'titulo', texto:'Motivos de la cinta' },
+
+	{ id:'motivos', etiqueta:'Motivos de la cinta', tipo:'texto', obligatorio:true, max:80,
+		ayuda:'Ideas: margaritas, hortensias, ramitas…' },
+
+	{ id:'motivosColores', etiqueta:'Colores de los motivos', tipo:'texto', obligatorio:true, max:80 },
+
+	{ id:'dorado',  etiqueta:'Detalles en dorado (estrellas, luna…)', tipo:'check', precio:5 },
+	{ id:'cuentas', etiqueta:'Cuentas', tipo:'check', precio:2.5 },
+
+	{ id:'frase', etiqueta:'Frase', tipo:'texto', precio:2.5, max:60,
+		ayuda:'Si añades una frase, se borda en un extremo y las iniciales y la fecha van juntas en el otro.' },
+
+	/* --- acabado --- */
+	{ id:'acabado', etiqueta:'Acabado de la cinta', tipo:'botones', defecto:'simple',
+		valores:[
+		{ id:'simple', nombre:'Cinta simple', precio:0,
+			nota:'Por detrás se ve el revés del bordado, ¡que hacemos con todo el cariño y cuidado!' },
+		{ id:'doble',  nombre:'Cinta doble',  precio:5,
+			nota:'Forrada para tapar el revés del bordado.' }
+		]}
 	],
-	extras: [
-	{ id:'fechaBordada', nombre:'Fecha bordada', precio:5 },
-	{ id:'puntilla',     nombre:'Puntilla de encaje en los bordes', precio:8 }
-	],
+
+	/* Cuadro de observaciones (va justo antes del precio final) */
+	observaciones:{
+	etiqueta:'Observaciones',
+	placeholder:'¿Algo que quieras comentarnos? Alguna frase, guiño a alguien especial, inspiración en algún tema…'
+	},
+
+	/* Bloque de envío (va después del precio final) */
+	envio:{
+	etiqueta:'Envío',
+	pregunta:'¿Necesitas que te lo enviemos?',
+	placeholder:'Nombre y apellidos, calle y número, código postal, ciudad y teléfono de contacto',
+	ayuda:'Costes de envío no incluidos.'
+	},
+
 	fotos: [],           /* ← rutas de tus fotos, ej. ['fotos/cinta-1.jpg', ...] */
 	info: {
 	'Más info':
-		'100% algodón. La cinta larga mide **140 cm** de largo y la corta **70 cm**, ambas de 3,5 cm de ancho aproximadamente.\n' +
-		'Bordada a mano y personalizada con las iniciales de la pareja o de la novia. El diseño del bordado no es personalizable.\n' +
-		'Las fotos pueden mostrar una ligera variación de color respecto a la pieza real.',
-	'Plazos':
-		'Los pedidos de boda se envían **un mes antes** de la fecha. El tiempo de elaboración es de unos **15 días laborables** y el envío tarda unas 48 horas.\n' +
-		'Si tu pedido es urgente, escríbenos antes de encargarlo.',
+		'Cinta de lino desflecado bordada a mano, de 4 cm de ancho aproximadamente y completamente personalizada.',
 	'Cambios y devoluciones':
-		'Al tratarse de piezas personalizadas (iniciales, fechas, nombres), **no se admiten cambios ni devoluciones**.\n' +
-		'Si hubiera que modificar una pieza ya bordada, el encargo tendría que repetirse con el mismo coste.'
+		'Al tratarse de piezas personalizadas (iniciales, fechas, nombres), **no se admiten cambios ni devoluciones**.'
 	}
 },
 
@@ -99,7 +162,6 @@ export const PRODUCTOS = [
 	fotos: [],
 	info: {
 	'Más info':'Medidas y materiales pendientes de definir.',
-	'Plazos':'Elaboración estimada de 15 días laborables. Envío en 48 horas.',
 	'Cambios y devoluciones':'Piezas personalizadas: no se admiten cambios ni devoluciones.'
 	}
 },
@@ -129,7 +191,6 @@ export const PRODUCTOS = [
 	fotos: [],
 	info: {
 	'Más info':'Medidas y materiales pendientes de definir.',
-	'Plazos':'Elaboración estimada de 15 días laborables. Envío en 48 horas.',
 	'Cambios y devoluciones':'Piezas personalizadas: no se admiten cambios ni devoluciones.'
 	}
 },
@@ -159,7 +220,6 @@ export const PRODUCTOS = [
 	fotos: [],
 	info: {
 	'Más info':'Medidas y materiales pendientes de definir.',
-	'Plazos':'Elaboración estimada de 15 días laborables. Envío en 48 horas.',
 	'Cambios y devoluciones':'Piezas personalizadas: no se admiten cambios ni devoluciones.'
 	}
 }
