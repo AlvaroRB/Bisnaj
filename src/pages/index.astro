@@ -51,6 +51,14 @@ function resolverFotos(p: (typeof PRODUCTOS)[number]) {
 
 const PRODUCTOS_WEB = PRODUCTOS.map(resolverFotos);
 
+/* El logo, como cualquier imagen de src/assets, también hay que
+   resolverlo por el catálogo importado: la ruta 'src/assets/…' solo
+   existe en el servidor de desarrollo, no en la web publicada. */
+const archivoLogo = (TIENDA.logo ?? "").split("/").pop() ?? "";
+const LOGO = archivoLogo
+  ? Object.entries(IMAGENES).find(([ruta]) => ruta.endsWith(`/${archivoLogo}`))?.[1].default ?? null
+  : null;
+
 /* Si el nombre contiene "Azahar", esa palabra va en dorado (diseño original) */
 const partes = TIENDA.nombre.includes("Azahar") ? TIENDA.nombre.split("Azahar") : null;
 const descripcion =
@@ -63,7 +71,7 @@ const descripcion =
 
 <header class="cabecera">
 	<div class="marca-grupo">
-		{TIENDA.logo && <img class="logo" src={TIENDA.logo} alt={TIENDA.nombre} width="64" height="64" />}
+		{LOGO && <img class="logo" src={LOGO.src} alt={TIENDA.nombre} width={LOGO.width} height={LOGO.height} />}
 		<div>
 			<div class="marca">
 				{partes ? <>{partes[0]}<span class="azahar">Azahar</span>{partes[1]}</> : TIENDA.nombre}

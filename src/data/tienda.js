@@ -20,7 +20,7 @@ Tipos de opción disponibles:
 export const TIENDA = {
 nombre:    'Bisnaj',
 lema:      'Accesorios de boda bordados a mano',
-logo:	   'src/assets/logo.png',  // ← ruta de tu logo (si no hay, se pinta solo el nombre)
+logo:	   'logo.png',  // ← nombre del archivo dentro de src/assets (déjalo en '' para pintar solo el nombre)
 anuncio:   'Cada pieza se hace a mano y bajo pedido · Agenda 2026–2027 abierta',
 email:     'hola@biznaj.es',      // ← tu email real (¡confirmar si es con S o con Z!)
 whatsapp:  '34661714720',                            // ← nº con prefijo, ej. '34612345678' (si está vacío, el botón usa el email)
